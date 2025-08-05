@@ -103,9 +103,13 @@ export class MemStorage implements IStorage {
   async getExpenses(): Promise<(Expense & { category: Category; partner: Partner })[]> {
     const expenses = Array.from(this.expenses.values());
     return expenses.map(expense => {
-      const category = this.categories.get(expense.categoryId)!;
-      const partner = this.partners.get(expense.partnerId)!;
-      return { ...expense, category, partner };
+      const category = this.categories.get(expense.categoryId);
+      const partner = this.partners.get(expense.partnerId);
+      return { 
+        ...expense, 
+        category: category || { id: '', name: 'Unknown', emoji: '❓', color: '#6B7280', budget: null },
+        partner: partner || { id: '', name: 'Unknown', color: '#6B7280' }
+      };
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
@@ -146,11 +150,14 @@ export class MemStorage implements IStorage {
       spendingMap.set(expense.categoryId, current + parseFloat(expense.amount));
     }
 
-    return Array.from(spendingMap.entries()).map(([categoryId, total]) => ({
-      categoryId,
-      total,
-      category: this.categories.get(categoryId)!,
-    }));
+    return Array.from(spendingMap.entries()).map(([categoryId, total]) => {
+      const category = this.categories.get(categoryId);
+      return {
+        categoryId,
+        total,
+        category: category || { id: categoryId, name: 'Unknown', emoji: '❓', color: '#6B7280', budget: null },
+      };
+    });
   }
 
   async getMonthlySpending(): Promise<{ month: string; total: number }[]> {

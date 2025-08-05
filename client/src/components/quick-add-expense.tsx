@@ -13,7 +13,12 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 
 const formSchema = insertExpenseSchema.extend({
-  amount: z.string().min(1, "Amount is required"),
+  amount: z.string()
+    .min(1, "Amount is required")
+    .regex(/^[0-9]+([.,][0-9]{1,2})?$/, "Please enter a valid amount (e.g., 10.50 or 10,50)"),
+  description: z.string().min(1, "Description is required"),
+  categoryId: z.string().min(1, "Please select a category"),
+  partnerId: z.string().min(1, "Please select who paid"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -44,9 +49,11 @@ export default function QuickAddExpense() {
 
   const createExpenseMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      // Handle comma as decimal separator
+      const normalizedAmount = data.amount.replace(',', '.');
       const expenseData = {
         ...data,
-        amount: parseFloat(data.amount).toFixed(2),
+        amount: parseFloat(normalizedAmount).toFixed(2),
       };
       return apiRequest("POST", "/api/expenses", expenseData);
     },
@@ -70,6 +77,25 @@ export default function QuickAddExpense() {
   });
 
   const onSubmit = (data: FormData) => {
+    // Additional validation to ensure all required fields are present
+    if (!data.categoryId) {
+      toast({
+        title: "Error",
+        description: "Please select a category",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.partnerId) {
+      toast({
+        title: "Error", 
+        description: "Please select who paid",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createExpenseMutation.mutate(data);
   };
 
@@ -92,10 +118,14 @@ export default function QuickAddExpense() {
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         {...field}
-                        type="number"
-                        step="0.01"
+                        type="text"
                         placeholder="0.00"
                         className="pl-8"
+                        onChange={(e) => {
+                          // Allow only numbers, dots, and commas
+                          const value = e.target.value.replace(/[^0-9.,]/g, '');
+                          field.onChange(value);
+                        }}
                       />
                     </div>
                   </FormControl>

@@ -136,29 +136,33 @@ export default function ExpenseHistory() {
                   <div className="flex items-center space-x-4">
                     <div 
                       className="w-12 h-12 rounded-lg flex items-center justify-center text-lg"
-                      style={{ backgroundColor: `${expense.category.color}20` }}
+                      style={{ backgroundColor: expense.category ? `${expense.category.color}20` : '#e5e7eb' }}
                     >
-                      {expense.category.emoji}
+                      {expense.category?.emoji || '📝'}
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{expense.description}</p>
                       <div className="flex items-center space-x-2 mt-1">
-                        <Badge 
-                          variant="secondary"
-                          style={{ 
-                            backgroundColor: `${expense.category.color}20`,
-                            color: expense.category.color,
-                          }}
-                        >
-                          {expense.category.name}
-                        </Badge>
-                        <div className="flex items-center space-x-1">
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: expense.partner.color }}
-                          />
-                          <span className="text-sm text-muted-foreground">{expense.partner.name}</span>
-                        </div>
+                        {expense.category && (
+                          <Badge 
+                            variant="secondary"
+                            style={{ 
+                              backgroundColor: `${expense.category.color}20`,
+                              color: expense.category.color,
+                            }}
+                          >
+                            {expense.category.name}
+                          </Badge>
+                        )}
+                        {expense.partner && (
+                          <div className="flex items-center space-x-1">
+                            <div 
+                              className="w-2 h-2 rounded-full" 
+                              style={{ backgroundColor: expense.partner.color }}
+                            />
+                            <span className="text-sm text-muted-foreground">{expense.partner.name}</span>
+                          </div>
+                        )}
                         <span className="text-sm text-muted-foreground">
                           {format(new Date(expense.date), "MMM d, yyyy")}
                         </span>

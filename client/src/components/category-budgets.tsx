@@ -65,15 +65,7 @@ export default function CategoryBudgets() {
               <Progress 
                 value={category.percentage} 
                 className="h-2"
-                style={{
-                  backgroundColor: '#e5e7eb',
-                }}
               />
-              <style jsx>{`
-                .progress-bar {
-                  background-color: ${category.isOverBudget ? '#ef4444' : category.color};
-                }
-              `}</style>
             </div>
           ))}
         </div>
