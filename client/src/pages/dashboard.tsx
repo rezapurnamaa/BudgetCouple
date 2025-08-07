@@ -141,8 +141,8 @@ export default function Dashboard() {
           
           {/* Quick Add & Categories */}
           <div className="space-y-6">
-            <QuickAddExpense />
             <CategoryBudgets />
+            <QuickAddExpense />
           </div>
         </div>
 
