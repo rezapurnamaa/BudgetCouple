@@ -2,29 +2,30 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
+import type { Category, Expense } from "@shared/schema";
 
 export default function BudgetAlerts() {
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [] } = useQuery<(Expense & { category: Category; partner: any })[]>({
     queryKey: ["/api/expenses"],
   });
 
   // Calculate spending per category for current month
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const monthlyExpenses = expenses.filter(expense => {
+  const monthlyExpenses = expenses.filter((expense: any) => {
     if (!expense || !expense.date) return false;
     return new Date(expense.date).toISOString().slice(0, 7) === currentMonth;
   });
 
-  const categoryAlerts = categories.map(category => {
+  const categoryAlerts = categories.map((category: Category) => {
     if (!category) return null;
     
     const spent = monthlyExpenses
-      .filter(expense => expense && expense.categoryId === category.id)
-      .reduce((sum, expense) => {
+      .filter((expense: any) => expense && expense.categoryId === category.id)
+      .reduce((sum: number, expense: any) => {
         if (!expense || !expense.amount) return sum;
         const amount = parseFloat(expense.amount);
         return sum + (isNaN(amount) ? 0 : amount);
@@ -71,7 +72,7 @@ export default function BudgetAlerts() {
   }).filter(Boolean);
 
   // Filter to show only categories that need attention
-  const alertsToShow = categoryAlerts.filter(alert => 
+  const alertsToShow = categoryAlerts.filter((alert: any) => 
     alert && (alert.percentage >= 50 || alert.alertType === 'danger')
   );
 
@@ -103,7 +104,7 @@ export default function BudgetAlerts() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {alertsToShow.map((alert) => {
+        {alertsToShow.map((alert: any) => {
           const Icon = alert.icon;
           return (
             <Alert key={alert.category.id} className={`

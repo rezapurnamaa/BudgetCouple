@@ -137,7 +137,9 @@ export default function Dashboard() {
             </div>
             
             {/* Quick Add Expense */}
-            <QuickAddExpense />
+            <div className="mb-6">
+              <QuickAddExpense />
+            </div>
             
             {/* Spending Chart */}
             <SpendingChart />
