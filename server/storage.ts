@@ -40,16 +40,20 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Default categories
     const defaultCategories = [
-      { name: "Grocery", emoji: "🛒", color: "#3B82F6", budget: "800.00" },
-      { name: "Eating Out", emoji: "🍽️", color: "#F59E0B", budget: "300.00" },
-      { name: "Transportation", emoji: "🚗", color: "#EF4444", budget: "400.00" },
-      { name: "Subscriptions", emoji: "📱", color: "#8B5CF6", budget: "200.00" },
-      { name: "Housing", emoji: "🏠", color: "#10B981", budget: "1200.00" },
-      { name: "Other", emoji: "📝", color: "#6B7280", budget: "500.00" },
+      { name: "Grocery", emoji: "🛒", color: "#3B82F6", budget: "500.00" },
+      { name: "Eating Out", emoji: "🍽️", color: "#F59E0B", budget: "250.00" },
+      { name: "Transportation", emoji: "🚗", color: "#EF4444", budget: "300.00" },
+      { name: "Subscriptions", emoji: "📱", color: "#8B5CF6", budget: "150.00" },
+      { name: "Shopping", emoji: "🛍️", color: "#10B981", budget: "200.00" },
+      { name: "Healthcare", emoji: "🏥", color: "#06B6D4", budget: "100.00" },
+      { name: "Utilities", emoji: "⚡", color: "#84CC16", budget: "200.00" },
+      { name: "Other", emoji: "📝", color: "#6B7280", budget: "150.00" },
     ];
 
+    const categoryIds: string[] = [];
     defaultCategories.forEach(cat => {
       const id = randomUUID();
+      categoryIds.push(id);
       this.categories.set(id, { ...cat, id });
     });
 
@@ -59,9 +63,79 @@ export class MemStorage implements IStorage {
       { name: "Mike", color: "#F59E0B" },
     ];
 
+    const partnerIds: string[] = [];
     defaultPartners.forEach(partner => {
       const id = randomUUID();
+      partnerIds.push(id);
       this.partners.set(id, { ...partner, id });
+    });
+
+    // Generate mock expenses for testing
+    this.generateMockExpenses(categoryIds, partnerIds);
+  }
+
+  private generateMockExpenses(categoryIds: string[], partnerIds: string[]) {
+    const mockExpenses = [
+      // Current month
+      { amount: "85.32", description: "Weekly groceries", categoryIndex: 0, partnerIndex: 0, daysAgo: 1 },
+      { amount: "45.50", description: "Gas station", categoryIndex: 2, partnerIndex: 1, daysAgo: 2 },
+      { amount: "120.00", description: "Date night dinner", categoryIndex: 1, partnerIndex: 0, daysAgo: 3 },
+      { amount: "25.99", description: "Netflix subscription", categoryIndex: 3, partnerIndex: 1, daysAgo: 5 },
+      { amount: "150.00", description: "New jacket", categoryIndex: 4, partnerIndex: 0, daysAgo: 7 },
+      { amount: "75.00", description: "Doctor visit", categoryIndex: 5, partnerIndex: 1, daysAgo: 10 },
+      { amount: "180.50", description: "Electric bill", categoryIndex: 6, partnerIndex: 0, daysAgo: 12 },
+      { amount: "92.15", description: "Grocery shopping", categoryIndex: 0, partnerIndex: 1, daysAgo: 14 },
+      { amount: "35.00", description: "Coffee and lunch", categoryIndex: 1, partnerIndex: 0, daysAgo: 15 },
+      { amount: "60.00", description: "Gym membership", categoryIndex: 5, partnerIndex: 1, daysAgo: 18 },
+      { amount: "45.00", description: "Uber rides", categoryIndex: 2, partnerIndex: 0, daysAgo: 20 },
+      
+      // Last month
+      { amount: "420.00", description: "Monthly groceries", categoryIndex: 0, partnerIndex: 0, daysAgo: 35 },
+      { amount: "65.00", description: "Movie theater", categoryIndex: 3, partnerIndex: 1, daysAgo: 40 },
+      { amount: "200.00", description: "Car maintenance", categoryIndex: 2, partnerIndex: 0, daysAgo: 45 },
+      { amount: "180.00", description: "Anniversary dinner", categoryIndex: 1, partnerIndex: 1, daysAgo: 50 },
+      { amount: "80.00", description: "New shoes", categoryIndex: 4, partnerIndex: 0, daysAgo: 55 },
+      { amount: "95.00", description: "Streaming services", categoryIndex: 3, partnerIndex: 1, daysAgo: 58 },
+      
+      // 2 months ago
+      { amount: "380.50", description: "Grocery haul", categoryIndex: 0, partnerIndex: 1, daysAgo: 65 },
+      { amount: "55.00", description: "Concert tickets", categoryIndex: 3, partnerIndex: 0, daysAgo: 70 },
+      { amount: "90.00", description: "Gas", categoryIndex: 2, partnerIndex: 1, daysAgo: 75 },
+      { amount: "160.00", description: "Birthday dinner", categoryIndex: 1, partnerIndex: 0, daysAgo: 80 },
+      { amount: "120.00", description: "Clothing", categoryIndex: 4, partnerIndex: 1, daysAgo: 85 },
+      
+      // 3 months ago
+      { amount: "450.00", description: "Big grocery trip", categoryIndex: 0, partnerIndex: 0, daysAgo: 95 },
+      { amount: "120.00", description: "Entertainment", categoryIndex: 3, partnerIndex: 1, daysAgo: 100 },
+      { amount: "75.00", description: "Gas and parking", categoryIndex: 2, partnerIndex: 0, daysAgo: 105 },
+      { amount: "200.00", description: "Weekend getaway meals", categoryIndex: 1, partnerIndex: 1, daysAgo: 110 },
+      
+      // 4 months ago
+      { amount: "520.00", description: "Monthly shopping", categoryIndex: 0, partnerIndex: 1, daysAgo: 125 },
+      { amount: "95.00", description: "Gaming subscription", categoryIndex: 3, partnerIndex: 0, daysAgo: 130 },
+      { amount: "140.00", description: "Winter coat", categoryIndex: 4, partnerIndex: 1, daysAgo: 135 },
+      
+      // 5 months ago
+      { amount: "350.00", description: "Groceries", categoryIndex: 0, partnerIndex: 0, daysAgo: 155 },
+      { amount: "200.00", description: "Holiday dining", categoryIndex: 1, partnerIndex: 1, daysAgo: 160 },
+      { amount: "85.00", description: "Transportation", categoryIndex: 2, partnerIndex: 0, daysAgo: 165 },
+    ];
+
+    // Create expense objects with proper dates
+    mockExpenses.forEach((mockExpense, index) => {
+      const expenseDate = new Date();
+      expenseDate.setDate(expenseDate.getDate() - mockExpense.daysAgo);
+      
+      const expense: Expense = {
+        id: `mock_expense_${index + 1}`,
+        amount: mockExpense.amount,
+        description: mockExpense.description,
+        categoryId: categoryIds[mockExpense.categoryIndex] || categoryIds[0],
+        partnerId: partnerIds[mockExpense.partnerIndex] || partnerIds[0],
+        date: expenseDate.toISOString()
+      };
+      
+      this.expenses.set(expense.id, expense);
     });
   }
 
