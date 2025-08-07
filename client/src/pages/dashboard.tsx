@@ -29,9 +29,19 @@ export default function Dashboard() {
     queryKey: ["/api/partners"],
   });
 
-  // Calculate dashboard stats
-  const totalSpent = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
-  const totalBudget = categories.reduce((sum, cat) => sum + (parseFloat(cat.budget || "0")), 0);
+  // Calculate dashboard stats with defensive checks
+  const totalSpent = expenses.reduce((sum, expense) => {
+    if (!expense || !expense.amount) return sum;
+    const amount = parseFloat(expense.amount);
+    return sum + (isNaN(amount) ? 0 : amount);
+  }, 0);
+  
+  const totalBudget = categories.reduce((sum, cat) => {
+    if (!cat || !cat.budget) return sum;
+    const budget = parseFloat(cat.budget);
+    return sum + (isNaN(budget) ? 0 : budget);
+  }, 0);
+  
   const budgetRemaining = totalBudget - totalSpent;
   const transactionCount = expenses.length;
 
@@ -140,8 +150,13 @@ export default function Dashboard() {
         <ExpenseHistory />
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      {isMobile && <BottomNavigation />}
+      {/* Mobile Bottom Navigation with extra padding for iOS */}
+      {isMobile && (
+        <>
+          <div className="h-20"></div>
+          <BottomNavigation />
+        </>
+      )}
     </div>
   );
 }

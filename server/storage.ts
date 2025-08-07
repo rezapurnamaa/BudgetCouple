@@ -110,7 +110,16 @@ export class MemStorage implements IStorage {
         category: category || { id: '', name: 'Unknown', emoji: '❓', color: '#6B7280', budget: null },
         partner: partner || { id: '', name: 'Unknown', color: '#6B7280' }
       };
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a, b) => {
+      // Ensure dates are valid before comparing
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      
+      if (isNaN(dateA.getTime())) return 1;
+      if (isNaN(dateB.getTime())) return -1;
+      
+      return dateB.getTime() - dateA.getTime();
+    });
   }
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {

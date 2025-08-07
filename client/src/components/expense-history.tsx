@@ -50,8 +50,10 @@ export default function ExpenseHistory() {
     },
   });
 
-  // Filter expenses
+  // Filter expenses with defensive checks
   const filteredExpenses = expenses.filter((expense) => {
+    if (!expense || !expense.description) return false;
+    
     const matchesSearch = expense.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || expense.categoryId === categoryFilter;
     const matchesPartner = partnerFilter === "all" || expense.partnerId === partnerFilter;

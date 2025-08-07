@@ -76,3 +76,25 @@
 .category-subscriptions { --color: hsl(262, 76%, 62%); }
 .category-housing { --color: hsl(162, 73%, 46%); }
 .category-other { --color: hsl(220, 9%, 46%); }
+
+/* iOS/iPad Safe Area Support */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Mobile/Tablet Optimizations */
+@media (max-width: 1024px) {
+  body {
+    /* Prevent zoom on input focus for iOS */
+    -webkit-text-size-adjust: 100%;
+    /* Smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  input, select, textarea {
+    /* Prevent zoom on input focus */
+    font-size: 16px;
+  }
+}

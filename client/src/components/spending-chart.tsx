@@ -12,19 +12,25 @@ export default function SpendingChart() {
     queryKey: ["/api/categories"],
   });
 
-  // Calculate spending by category
+  // Calculate spending by category with defensive checks
   const chartData = categories.map(category => {
+    if (!category) return null;
+    
     const spent = expenses
-      .filter(expense => expense.categoryId === category.id)
-      .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+      .filter(expense => expense && expense.categoryId === category.id)
+      .reduce((sum, expense) => {
+        if (!expense || !expense.amount) return sum;
+        const amount = parseFloat(expense.amount);
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
     
     return {
-      name: category.name,
+      name: category.name || 'Unknown',
       value: spent,
-      color: category.color,
-      emoji: category.emoji,
+      color: category.color || '#6B7280',
+      emoji: category.emoji || '📝',
     };
-  }).filter(item => item.value > 0);
+  }).filter(item => item && item.value > 0);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {

@@ -11,25 +11,32 @@ export default function CategoryBudgets() {
     queryKey: ["/api/expenses"],
   });
 
-  // Calculate spending per category
+  // Calculate spending per category with defensive checks
   const categorySpending = categories.map(category => {
+    if (!category) return null;
+    
     const spent = expenses
-      .filter(expense => expense.categoryId === category.id)
-      .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+      .filter(expense => expense && expense.categoryId === category.id)
+      .reduce((sum, expense) => {
+        if (!expense || !expense.amount) return sum;
+        const amount = parseFloat(expense.amount);
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
     
     const budget = parseFloat(category.budget || "0");
-    const remaining = budget - spent;
-    const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
+    const budgetSafe = isNaN(budget) ? 0 : budget;
+    const remaining = budgetSafe - spent;
+    const percentage = budgetSafe > 0 ? Math.min((spent / budgetSafe) * 100, 100) : 0;
     
     return {
       ...category,
       spent,
-      budget,
+      budget: budgetSafe,
       remaining,
       percentage,
-      isOverBudget: spent > budget && budget > 0,
+      isOverBudget: spent > budgetSafe && budgetSafe > 0,
     };
-  });
+  }).filter(Boolean);
 
   return (
     <Card>
