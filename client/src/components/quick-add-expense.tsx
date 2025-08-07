@@ -100,7 +100,7 @@ export default function QuickAddExpense() {
   };
 
   return (
-    <Card>
+    <Card data-testid="quick-add-expense">
       <CardHeader>
         <CardTitle>Quick Add Expense</CardTitle>
       </CardHeader>

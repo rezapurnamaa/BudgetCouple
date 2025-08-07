@@ -6,6 +6,7 @@ import ExpenseHistory from "@/components/expense-history";
 import CategoryBudgets from "@/components/category-budgets";
 import SpendingChart from "@/components/spending-chart";
 import BottomNavigation from "@/components/bottom-navigation";
+import BudgetAlerts from "@/components/budget-alerts";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardStats {
@@ -145,6 +146,7 @@ export default function Dashboard() {
           {/* Categories */}
           <div className="space-y-6">
             <CategoryBudgets />
+            <BudgetAlerts />
           </div>
         </div>
 
