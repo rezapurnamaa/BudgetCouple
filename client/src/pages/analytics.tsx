@@ -6,9 +6,12 @@ import { Calendar, TrendingUp, Users, PieChart as PieChartIcon } from "lucide-re
 import { useState } from "react";
 import MonthlySummary from "@/components/monthly-summary";
 import BudgetAlerts from "@/components/budget-alerts";
+import BottomNavigation from "@/components/bottom-navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState("6months");
+  const isMobile = useIsMobile();
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["/api/expenses"],
@@ -187,6 +190,9 @@ export default function Analytics() {
           </div>
         </div>
       </div>
+      
+      {/* Mobile Navigation */}
+      {isMobile && <BottomNavigation />}
     </div>
   );
 }

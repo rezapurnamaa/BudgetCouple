@@ -6,11 +6,11 @@ export default function BottomNavigation() {
   const [location, setLocation] = useLocation();
 
   const navigationItems = [
-    { path: "/", icon: Home, label: "Home" },
-    { path: "/analytics", icon: BarChart3, label: "Analytics" },
-    { path: "#", icon: Plus, label: "Add", isAction: true },
-    { path: "#", icon: List, label: "History" },
-    { path: "#", icon: User, label: "Profile" },
+    { path: "/", icon: Home, label: "Home", id: "home" },
+    { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
+    { path: "#add", icon: Plus, label: "Add", isAction: true, id: "add" },
+    { path: "#history", icon: List, label: "History", id: "history" },
+    { path: "#profile", icon: User, label: "Profile", id: "profile" },
   ];
 
   const scrollToQuickAdd = () => {
@@ -35,7 +35,7 @@ export default function BottomNavigation() {
           
           return (
             <Button
-              key={item.path}
+              key={item.id}
               variant={isAddButton ? "default" : "ghost"}
               className={`flex flex-col items-center py-2 px-3 ${
                 isAddButton ? "rounded-lg" : ""
