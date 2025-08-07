@@ -135,14 +135,16 @@ export default function Dashboard() {
               </Card>
             </div>
             
+            {/* Quick Add Expense */}
+            <QuickAddExpense />
+            
             {/* Spending Chart */}
             <SpendingChart />
           </div>
           
-          {/* Quick Add & Categories */}
+          {/* Categories */}
           <div className="space-y-6">
             <CategoryBudgets />
-            <QuickAddExpense />
           </div>
         </div>
 
