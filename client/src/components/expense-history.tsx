@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Edit, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Edit, Trash2, CheckSquare, Square } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -16,6 +17,8 @@ export default function ExpenseHistory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [partnerFilter, setPartnerFilter] = useState("all");
+  const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["/api/expenses"],
@@ -50,6 +53,33 @@ export default function ExpenseHistory() {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Delete all expenses in parallel
+      const deletePromises = ids.map(id => 
+        apiRequest("DELETE", `/api/expenses/${id}`)
+      );
+      return Promise.all(deletePromises);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      setSelectedExpenses([]);
+      setIsSelectionMode(false);
+      toast({
+        title: "Success",
+        description: `${variables.length} expenses deleted successfully`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete some expenses",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter expenses with defensive checks
   const filteredExpenses = expenses.filter((expense) => {
     if (!expense || !expense.description) return false;
@@ -67,6 +97,35 @@ export default function ExpenseHistory() {
     }
   };
 
+  const handleBulkDelete = () => {
+    if (selectedExpenses.length === 0) return;
+    
+    if (confirm(`Are you sure you want to delete ${selectedExpenses.length} selected expenses?`)) {
+      bulkDeleteMutation.mutate(selectedExpenses);
+    }
+  };
+
+  const handleSelectExpense = (expenseId: string) => {
+    setSelectedExpenses(prev => 
+      prev.includes(expenseId) 
+        ? prev.filter(id => id !== expenseId)
+        : [...prev, expenseId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedExpenses.length === filteredExpenses.length) {
+      setSelectedExpenses([]);
+    } else {
+      setSelectedExpenses(filteredExpenses.map(expense => expense.id));
+    }
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    setSelectedExpenses([]);
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -81,7 +140,20 @@ export default function ExpenseHistory() {
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <CardTitle>Recent Transactions</CardTitle>
+          <div className="flex items-center space-x-3">
+            <CardTitle>Recent Transactions</CardTitle>
+            {filteredExpenses.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSelectionMode}
+                className="flex items-center space-x-2"
+              >
+                {isSelectionMode ? <Square className="h-4 w-4" /> : <CheckSquare className="h-4 w-4" />}
+                <span>{isSelectionMode ? "Cancel" : "Select"}</span>
+              </Button>
+            )}
+          </div>
           
           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -123,6 +195,42 @@ export default function ExpenseHistory() {
             </div>
           </div>
         </div>
+        
+        {/* Bulk actions bar */}
+        {isSelectionMode && (
+          <div className="flex items-center justify-between p-4 bg-muted/20 border rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Checkbox
+                checked={selectedExpenses.length === filteredExpenses.length && filteredExpenses.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+              <span className="text-sm font-medium">
+                {selectedExpenses.length === 0 
+                  ? "Select all" 
+                  : `${selectedExpenses.length} selected`
+                }
+              </span>
+            </div>
+            
+            {selectedExpenses.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteMutation.isPending}
+                className="flex items-center space-x-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>
+                  {bulkDeleteMutation.isPending 
+                    ? "Deleting..." 
+                    : `Delete ${selectedExpenses.length}`
+                  }
+                </span>
+              </Button>
+            )}
+          </div>
+        )}
       </CardHeader>
       
       <CardContent>
@@ -136,6 +244,12 @@ export default function ExpenseHistory() {
               <div key={expense.id} className="py-4 hover:bg-muted/50 transition-colors rounded-lg px-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
+                    {isSelectionMode && (
+                      <Checkbox
+                        checked={selectedExpenses.includes(expense.id)}
+                        onCheckedChange={() => handleSelectExpense(expense.id)}
+                      />
+                    )}
                     <div 
                       className="w-12 h-12 rounded-lg flex items-center justify-center text-lg"
                       style={{ backgroundColor: expense.category ? `${expense.category.color}20` : '#e5e7eb' }}
@@ -175,16 +289,18 @@ export default function ExpenseHistory() {
                     <div>
                       <p className="font-semibold text-foreground">-${parseFloat(expense.amount).toFixed(2)}</p>
                     </div>
-                    <div className="flex space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(expense.id)}
-                        disabled={deleteExpenseMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {!isSelectionMode && (
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(expense.id)}
+                          disabled={deleteExpenseMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
