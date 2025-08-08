@@ -7,6 +7,7 @@ import { useState } from "react";
 import MonthlySummary from "@/components/monthly-summary";
 import BudgetAlerts from "@/components/budget-alerts";
 import BottomNavigation from "@/components/bottom-navigation";
+import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Analytics() {
@@ -87,16 +88,20 @@ export default function Analytics() {
               <h1 className="text-xl font-semibold text-foreground">Analytics</h1>
             </div>
             
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="w-auto">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3months">Last 3 Months</SelectItem>
-                <SelectItem value="6months">Last 6 Months</SelectItem>
-                <SelectItem value="12months">Last 12 Months</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center space-x-4">
+              <DesktopNavigation />
+              
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-auto">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3months">Last 3 Months</SelectItem>
+                  <SelectItem value="6months">Last 6 Months</SelectItem>
+                  <SelectItem value="12months">Last 12 Months</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </header>

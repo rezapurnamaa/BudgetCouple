@@ -7,6 +7,7 @@ import CategoryBudgets from "@/components/category-budgets";
 import SpendingChart from "@/components/spending-chart";
 import BottomNavigation from "@/components/bottom-navigation";
 import BudgetAlerts from "@/components/budget-alerts";
+import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardStats {
@@ -60,6 +61,8 @@ export default function Dashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              <DesktopNavigation />
+              
               {/* Partner indicators */}
               <div className="flex items-center space-x-2">
                 {partners.map((partner) => (
