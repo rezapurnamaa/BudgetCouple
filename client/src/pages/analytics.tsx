@@ -2,18 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell } from "recharts";
-import { Calendar, TrendingUp, Users, PieChart as PieChartIcon } from "lucide-react";
+import { Calendar as CalendarIcon, TrendingUp, Users, PieChart as PieChartIcon, CalendarDays } from "lucide-react";
 import { useState } from "react";
 import MonthlySummary from "@/components/monthly-summary";
 import BudgetAlerts from "@/components/budget-alerts";
 import BottomNavigation from "@/components/bottom-navigation";
 import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { DateRangeProvider } from "@/contexts/date-range-context";
+import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 
 function AnalyticsContent() {
   const [timeRange, setTimeRange] = useState("6months");
   const isMobile = useIsMobile();
+  const { startDate, endDate, setDateRange } = useDateRange();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["/api/expenses"],
@@ -27,35 +33,72 @@ function AnalyticsContent() {
     queryKey: ["/api/partners"],
   });
 
-  // Generate monthly spending data
-  const monthlyData = Array.from({ length: 6 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const monthKey = date.toISOString().slice(0, 7);
-    
-    const monthExpenses = expenses.filter(expense => {
-      if (!expense || !expense.date) return false;
-      return new Date(expense.date).toISOString().slice(0, 7) === monthKey;
-    });
-    
-    const total = monthExpenses.reduce((sum, expense) => {
-      if (!expense || !expense.amount) return sum;
-      const amount = parseFloat(expense.amount);
-      return sum + (isNaN(amount) ? 0 : amount);
-    }, 0);
-    
-    return {
-      month: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      total: total,
-      transactions: monthExpenses.length
-    };
-  }).reverse();
+  // Filter expenses by date range
+  const filteredExpenses = expenses.filter(expense => {
+    if (!expense || !expense.date) return false;
+    const expenseDate = new Date(expense.date);
+    return expenseDate >= startDate && expenseDate <= endDate;
+  });
 
-  // Category spending comparison
+  // Generate spending data for the selected date range (by week or month based on range)
+  const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const showWeeklyData = daysDifference <= 60; // Show weekly for 2 months or less, monthly for longer periods
+
+  const timeSeriesData = showWeeklyData ? 
+    // Weekly data
+    Array.from({ length: Math.ceil(daysDifference / 7) }, (_, i) => {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(startDate.getDate() + (i * 7));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      
+      const weekExpenses = filteredExpenses.filter(expense => {
+        if (!expense || !expense.date) return false;
+        const expenseDate = new Date(expense.date);
+        return expenseDate >= weekStart && expenseDate <= weekEnd;
+      });
+      
+      const total = weekExpenses.reduce((sum, expense) => {
+        if (!expense || !expense.amount) return sum;
+        const amount = parseFloat(expense.amount);
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
+      
+      return {
+        period: `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`,
+        total: total,
+        transactions: weekExpenses.length
+      };
+    }) :
+    // Monthly data
+    Array.from({ length: 6 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = date.toISOString().slice(0, 7);
+      
+      const monthExpenses = filteredExpenses.filter(expense => {
+        if (!expense || !expense.date) return false;
+        return new Date(expense.date).toISOString().slice(0, 7) === monthKey;
+      });
+      
+      const total = monthExpenses.reduce((sum, expense) => {
+        if (!expense || !expense.amount) return sum;
+        const amount = parseFloat(expense.amount);
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
+      
+      return {
+        period: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        total: total,
+        transactions: monthExpenses.length
+      };
+    }).reverse();
+
+  // Category spending comparison (filtered by date range)
   const categoryComparison = categories.map(category => {
     if (!category) return null;
     
-    const spent = expenses
+    const spent = filteredExpenses
       .filter(expense => expense && expense.categoryId === category.id)
       .reduce((sum, expense) => {
         if (!expense || !expense.amount) return sum;
@@ -92,16 +135,74 @@ function AnalyticsContent() {
             <div className="flex items-center space-x-4">
               <DesktopNavigation />
               
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-auto">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="3months">Last 3 Months</SelectItem>
-                  <SelectItem value="6months">Last 6 Months</SelectItem>
-                  <SelectItem value="12months">Last 12 Months</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Date Range Controls */}
+              <div className="flex items-center space-x-2">
+                {/* Quick Preset Buttons */}
+                <div className="hidden sm:flex items-center space-x-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = subDays(end, 6);
+                      setDateRange(start, end);
+                    }}
+                  >
+                    7 days
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const end = new Date();
+                      const start = subDays(end, 29);
+                      setDateRange(start, end);
+                    }}
+                  >
+                    30 days
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const end = endOfMonth(new Date());
+                      const start = startOfMonth(new Date());
+                      setDateRange(start, end);
+                    }}
+                  >
+                    This month
+                  </Button>
+                </div>
+
+                {/* Custom Date Range Picker */}
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="flex items-center space-x-2">
+                      <CalendarDays className="h-4 w-4" />
+                      <span className="hidden sm:inline">
+                        {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+                      </span>
+                      <span className="sm:hidden">
+                        {format(startDate, 'M/d')} - {format(endDate, 'M/d')}
+                      </span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      mode="range"
+                      defaultMonth={startDate}
+                      selected={{ from: startDate, to: endDate }}
+                      onSelect={(range) => {
+                        if (range?.from && range?.to) {
+                          setDateRange(range.from, range.to);
+                          setIsCalendarOpen(false);
+                        }
+                      }}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
         </div>
@@ -124,7 +225,7 @@ function AnalyticsContent() {
               <CardContent>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={monthlyData}>
+                    <LineChart data={timeSeriesData}>
                       <defs>
                         <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
@@ -133,7 +234,7 @@ function AnalyticsContent() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
                       <XAxis 
-                        dataKey="month" 
+                        dataKey="period" 
                         tick={{ fontSize: 12 }}
                         axisLine={false}
                         tickLine={false}
@@ -176,7 +277,7 @@ function AnalyticsContent() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5" />
+                  <CalendarIcon className="h-5 w-5" />
                   <span>Budget vs Actual Spending</span>
                 </CardTitle>
               </CardHeader>
