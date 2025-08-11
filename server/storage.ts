@@ -301,81 +301,75 @@ export class MemStorage implements IStorage {
         daysAgo: 20,
       },
 
-      // Previous months
+      // Previous months - adjusted to have only 3 over-budget categories
       {
-        amount: "420.00",
+        amount: "120.00",
         description: "Monthly groceries bulk buy",
-        categoryIndex: 0, // Groceries
+        categoryIndex: 0, // Groceries - TOTAL: 665.97 (OVER $500)
         partnerIndex: 0,
         daysAgo: 35,
       },
       {
-        amount: "65.00",
+        amount: "25.00",
         description: "Movie theater date",
-        categoryIndex: 2, // Entertainment
+        categoryIndex: 2, // Entertainment - TOTAL: 245.00 (OVER $200)
         partnerIndex: 1,
         daysAgo: 40,
       },
       {
-        amount: "200.00",
+        amount: "85.00",
         description: "Car service and oil change",
-        categoryIndex: 7, // Transport
+        categoryIndex: 7, // Transport - TOTAL: 215.50 (UNDER $300)
         partnerIndex: 0,
         daysAgo: 45,
       },
       {
-        amount: "180.00",
+        amount: "15.00",
         description: "Anniversary dinner celebration",
-        categoryIndex: 1, // Eating out
+        categoryIndex: 1, // Eating out - TOTAL: 298.50 (OVER $250)
         partnerIndex: 1,
         daysAgo: 50,
       },
       {
-        amount: "80.00",
+        amount: "35.00",
         description: "Wedding gift for cousin",
-        categoryIndex: 4, // Gifts
+        categoryIndex: 4, // Gifts - TOTAL: 155.00 (UNDER $200)
         partnerIndex: 0,
         daysAgo: 55,
       },
+
       {
-        amount: "38.97",
-        description: "Multiple streaming services",
-        categoryIndex: 3, // Subscription
-        partnerIndex: 1,
-        daysAgo: 58,
-      },
-      {
-        amount: "380.50",
-        description: "Costco grocery shopping",
+        amount: "30.00",
+        description: "Small grocery run",
         categoryIndex: 0, // Groceries
         partnerIndex: 1,
         daysAgo: 65,
       },
       {
-        amount: "155.00",
-        description: "Broadway show tickets",
+        amount: "20.00",
+        description: "Streaming movie rental",
         categoryIndex: 2, // Entertainment
         partnerIndex: 0,
         daysAgo: 70,
       },
       {
-        amount: "90.00",
-        description: "Gas and car wash",
+        amount: "45.00",
+        description: "Gas fill-up",
         categoryIndex: 7, // Transport
         partnerIndex: 1,
         daysAgo: 75,
       },
       {
-        amount: "160.00",
-        description: "Birthday dinner party",
+        amount: "25.00",
+        description: "Coffee with friend",
         categoryIndex: 1, // Eating out
         partnerIndex: 0,
         daysAgo: 80,
       },
       {
-        amount: "320.00",
+        amount: "150.00",
         description: "Weekend getaway hotel",
-        categoryIndex: 8, // Vacation
+        categoryIndex: 8, // Vacation - TOTAL: 680.00 (UNDER $800)
         partnerIndex: 1,
         daysAgo: 85,
       },
