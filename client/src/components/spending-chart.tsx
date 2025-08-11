@@ -1,6 +1,9 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -16,7 +19,9 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { format, subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type DateRange = "30-days" | "60-days" | "90-days" | "custom";
 
@@ -32,6 +37,8 @@ interface SpendingData {
 
 export default function SpendingChart() {
   const [dateRange, setDateRange] = useState<DateRange>("30-days");
+  const [customStartDate, setCustomStartDate] = useState<Date>();
+  const [customEndDate, setCustomEndDate] = useState<Date>();
   
   const { data: expenses = [] } = useQuery({
     queryKey: ["/api/expenses"],
@@ -42,37 +49,49 @@ export default function SpendingChart() {
   });
 
   // Calculate date range
-  const { startDate, endDate } = useMemo(() => {
+  const { startDate, endDate, dayCount } = useMemo(() => {
     const now = new Date();
     let start: Date;
+    let end: Date = now;
     
-    switch (dateRange) {
-      case "30-days":
-        start = subDays(now, 30);
-        break;
-      case "60-days":
-        start = subDays(now, 60);
-        break;
-      case "90-days":
-        start = subDays(now, 90);
-        break;
-      default:
-        start = subDays(now, 30);
+    if (dateRange === "custom" && customStartDate && customEndDate) {
+      start = customStartDate;
+      end = customEndDate;
+    } else {
+      switch (dateRange) {
+        case "30-days":
+          start = subDays(now, 30);
+          break;
+        case "60-days":
+          start = subDays(now, 60);
+          break;
+        case "90-days":
+          start = subDays(now, 90);
+          break;
+        default:
+          start = subDays(now, 30);
+      }
     }
+    
+    const dayCount = differenceInDays(endOfDay(end), startOfDay(start)) + 1;
     
     return {
       startDate: startOfDay(start),
-      endDate: endOfDay(now)
+      endDate: endOfDay(end),
+      dayCount
     };
-  }, [dateRange]);
+  }, [dateRange, customStartDate, customEndDate]);
 
-  // Filter expenses by date range and calculate spending data
-  const { chartData, totalSpent, totalBudget } = useMemo(() => {
+  // Filter expenses by date range and calculate spending data with proportional budgets
+  const { chartData, totalSpent, totalBudget, filteredExpenses } = useMemo(() => {
     const filteredExpenses = expenses.filter((expense: any) => {
       if (!expense?.date) return false;
       const expenseDate = new Date(expense.date);
       return expenseDate >= startDate && expenseDate <= endDate;
     });
+
+    // Calculate proportional budget based on date range (assuming monthly budgets)
+    const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
 
     const spendingData: SpendingData[] = categories
       .map((category: any) => {
@@ -86,7 +105,9 @@ export default function SpendingChart() {
             return sum + (isNaN(amount) ? 0 : amount);
           }, 0);
 
-        const budget = category.budget ? parseFloat(category.budget) : 0;
+        // Calculate proportional budget for the selected date range
+        const monthlyBudget = category.budget ? parseFloat(category.budget) : 0;
+        const budget = monthlyBudget * budgetMultiplier;
         const remaining = Math.max(0, budget - spent);
         const isOverBudget = spent > budget && budget > 0;
 
@@ -109,8 +130,9 @@ export default function SpendingChart() {
       chartData: spendingData,
       totalSpent,
       totalBudget,
+      filteredExpenses,
     };
-  }, [expenses, categories, startDate, endDate]);
+  }, [expenses, categories, startDate, endDate, dayCount]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -146,6 +168,7 @@ export default function SpendingChart() {
     return null;
   };
 
+  const budgetMultiplier = dayCount / 30;
   const budgetRemaining = totalBudget - totalSpent;
   const overBudgetAmount = totalSpent > totalBudget ? totalSpent - totalBudget : 0;
 
@@ -154,26 +177,82 @@ export default function SpendingChart() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Spending by Category</CardTitle>
-          <Select value={dateRange} onValueChange={(value: DateRange) => setDateRange(value)}>
-            <SelectTrigger className="w-auto">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30-days">Last 30 Days</SelectItem>
-              <SelectItem value="60-days">Last 60 Days</SelectItem>
-              <SelectItem value="90-days">Last 90 Days</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center space-x-2">
+            <Select value={dateRange} onValueChange={(value: DateRange) => setDateRange(value)}>
+              <SelectTrigger className="w-auto">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30-days">Last 30 Days</SelectItem>
+                <SelectItem value="60-days">Last 60 Days</SelectItem>
+                <SelectItem value="90-days">Last 90 Days</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
+        {/* Custom Date Range Picker */}
+        {dateRange === "custom" && (
+          <div className="flex items-center space-x-2 mt-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !customStartDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {customStartDate ? format(customStartDate, "PPP") : "Start date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={customStartDate}
+                  onSelect={setCustomStartDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <span className="text-sm text-muted-foreground">to</span>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !customEndDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {customEndDate ? format(customEndDate, "PPP") : "End date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={customEndDate}
+                  onSelect={setCustomEndDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
         
         {/* Date Range and Budget Summary */}
         <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600 dark:text-gray-400">
-              {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+              {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')} ({dayCount} days)
             </span>
             <span className="font-medium text-gray-900 dark:text-gray-100">
-              Budget: ${totalBudget.toFixed(2)}
+              Budget: ${totalBudget.toFixed(2)} ({(dayCount / 30).toFixed(2)}x monthly)
             </span>
           </div>
           

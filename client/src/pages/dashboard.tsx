@@ -1,3 +1,4 @@
+import { createContext, useContext, useState, ReactNode, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, CreditCard, PiggyBank, Receipt } from "lucide-react";
@@ -9,6 +10,25 @@ import BottomNavigation from "@/components/bottom-navigation";
 import BudgetAlerts from "@/components/budget-alerts";
 import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
+
+// Create context for sharing date range between components
+interface DateRangeContextType {
+  startDate: Date;
+  endDate: Date;
+  dayCount: number;
+  budgetMultiplier: number;
+}
+
+const DateRangeContext = createContext<DateRangeContextType | null>(null);
+
+export const useDateRange = () => {
+  const context = useContext(DateRangeContext);
+  if (!context) {
+    throw new Error('useDateRange must be used within DateRangeProvider');
+  }
+  return context;
+};
 
 interface DashboardStats {
   totalSpent: number;
@@ -31,15 +51,18 @@ export default function Dashboard() {
     queryKey: ["/api/partners"],
   });
 
-  // Calculate dashboard stats for current month (last 30 days)
+  // Calculate dashboard stats for current month (last 30 days) - matching spending chart logic
   const now = new Date();
-  const thirtyDaysAgo = new Date(now);
-  thirtyDaysAgo.setDate(now.getDate() - 30);
+  const thirtyDaysAgo = subDays(now, 30);
+  const startDate = startOfDay(thirtyDaysAgo);
+  const endDate = endOfDay(now);
+  const dayCount = differenceInDays(endDate, startDate) + 1;
+  const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
   
   const currentMonthExpenses = expenses.filter((expense: any) => {
     if (!expense?.date) return false;
     const expenseDate = new Date(expense.date);
-    return expenseDate >= thirtyDaysAgo && expenseDate <= now;
+    return expenseDate >= startDate && expenseDate <= endDate;
   });
   
   const totalSpent = currentMonthExpenses.reduce((sum: number, expense: any) => {
@@ -48,12 +71,14 @@ export default function Dashboard() {
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
   
-  const totalBudget = categories.reduce((sum: number, cat: any) => {
+  // Calculate proportional budget for the 30-day period
+  const totalMonthlyBudget = categories.reduce((sum: number, cat: any) => {
     if (!cat || !cat.budget) return sum;
     const budget = parseFloat(cat.budget);
     return sum + (isNaN(budget) ? 0 : budget);
   }, 0);
   
+  const totalBudget = totalMonthlyBudget * budgetMultiplier;
   const budgetRemaining = totalBudget - totalSpent;
   const transactionCount = currentMonthExpenses.length;
 
@@ -105,7 +130,7 @@ export default function Dashboard() {
                       <p className="text-2xl font-bold text-foreground">
                         ${totalSpent.toFixed(2)}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">This month</p>
+                      <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                       <CreditCard className="text-primary" />
@@ -139,7 +164,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Transactions</p>
                       <p className="text-2xl font-bold text-foreground">{transactionCount}</p>
-                      <p className="text-xs text-muted-foreground mt-1">This month</p>
+                      <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
                     </div>
                     <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                       <Receipt className="text-purple-600" />
