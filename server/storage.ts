@@ -64,7 +64,7 @@ export class MemStorage implements IStorage {
       { name: "Gifts", emoji: "🎁", color: "#EF4444", budget: "200.00" },
       { name: "Potluck", emoji: "🫕", color: "#F97316", budget: "100.00" },
       { name: "Charity", emoji: "❤️", color: "#EC4899", budget: "100.00" },
-      { name: "Additional transport", emoji: "🚗", color: "#84CC16", budget: "300.00" },
+      { name: "Transport", emoji: "🚗", color: "#84CC16", budget: "300.00" },
       { name: "Vacation", emoji: "✈️", color: "#06B6D4", budget: "800.00" },
       { name: "Emergency spending", emoji: "🚨", color: "#DC2626", budget: "500.00" },
       { name: "Babysitting", emoji: "👶", color: "#A855F7", budget: "200.00" },
@@ -98,29 +98,29 @@ export class MemStorage implements IStorage {
 
   private generateMockExpenses(categoryIds: string[], partnerIds: string[]) {
     const mockExpenses = [
-      // Current month - Groceries (0)
+      // Current month - Groceries (0) - OVER BUDGET ($500)
       {
-        amount: "85.32",
+        amount: "185.32",
         description: "Weekly groceries - Whole Foods",
         categoryIndex: 0,
         partnerIndex: 0,
         daysAgo: 1,
       },
       {
-        amount: "92.15",
+        amount: "192.15",
         description: "Grocery shopping - Safeway",
         categoryIndex: 0,
         partnerIndex: 1,
         daysAgo: 8,
       },
       {
-        amount: "67.50",
+        amount: "167.50",
         description: "Fresh produce and meat",
         categoryIndex: 0,
         partnerIndex: 0,
         daysAgo: 15,
       },
-      // Eating out (1)
+      // Eating out (1) - OVER BUDGET ($250)
       {
         amount: "120.00",
         description: "Date night dinner - Italian restaurant",
@@ -129,8 +129,8 @@ export class MemStorage implements IStorage {
         daysAgo: 3,
       },
       {
-        amount: "35.00",
-        description: "Coffee and lunch",
+        amount: "85.00",
+        description: "Coffee and lunch meetings",
         categoryIndex: 1,
         partnerIndex: 1,
         daysAgo: 5,
@@ -142,22 +142,22 @@ export class MemStorage implements IStorage {
         partnerIndex: 0,
         daysAgo: 12,
       },
-      // Entertainment (2)
+      // Entertainment (2) - OVER BUDGET ($200)
       {
-        amount: "45.00",
-        description: "Movie tickets",
+        amount: "95.00",
+        description: "Movie tickets and dinner",
         categoryIndex: 2,
         partnerIndex: 1,
         daysAgo: 7,
       },
       {
-        amount: "85.00",
+        amount: "125.00",
         description: "Concert tickets",
         categoryIndex: 2,
         partnerIndex: 0,
         daysAgo: 20,
       },
-      // Subscription (3)
+      // Subscription (3) - EQUALS BUDGET ($150)
       {
         amount: "15.99",
         description: "Netflix subscription",
@@ -179,22 +179,29 @@ export class MemStorage implements IStorage {
         partnerIndex: 1,
         daysAgo: 18,
       },
-      // Gifts (4)
       {
-        amount: "150.00",
+        amount: "111.03",
+        description: "Annual Adobe Creative Suite",
+        categoryIndex: 3,
+        partnerIndex: 0,
+        daysAgo: 25,
+      },
+      // Gifts (4) - UNDER BUDGET ($200)
+      {
+        amount: "75.00",
         description: "Birthday gift for Mom",
         categoryIndex: 4,
         partnerIndex: 0,
         daysAgo: 14,
       },
       {
-        amount: "75.00",
+        amount: "45.00",
         description: "Anniversary gift",
         categoryIndex: 4,
         partnerIndex: 1,
         daysAgo: 25,
       },
-      // Potluck (5)
+      // Potluck (5) - UNDER BUDGET ($100)
       {
         amount: "35.00",
         description: "Office potluck contribution",
@@ -209,7 +216,7 @@ export class MemStorage implements IStorage {
         partnerIndex: 1,
         daysAgo: 22,
       },
-      // Charity (6)
+      // Charity (6) - EQUALS BUDGET ($100)
       {
         amount: "100.00",
         description: "Monthly charity donation",
@@ -217,7 +224,7 @@ export class MemStorage implements IStorage {
         partnerIndex: 0,
         daysAgo: 6,
       },
-      // Additional transport (7)
+      // Transport (7) - UNDER BUDGET ($300)
       {
         amount: "45.50",
         description: "Gas station fill-up",
@@ -239,7 +246,7 @@ export class MemStorage implements IStorage {
         partnerIndex: 1,
         daysAgo: 19,
       },
-      // Vacation (8)
+      // Vacation (8) - UNDER BUDGET ($800)
       {
         amount: "350.00",
         description: "Flight tickets to Portland",
@@ -254,15 +261,15 @@ export class MemStorage implements IStorage {
         partnerIndex: 1,
         daysAgo: 17,
       },
-      // Emergency spending (9)
+      // Emergency spending (9) - UNDER BUDGET ($500)
       {
-        amount: "400.00",
+        amount: "200.00",
         description: "Car repair - brake pads",
         categoryIndex: 9,
         partnerIndex: 0,
         daysAgo: 21,
       },
-      // Babysitting (10)
+      // Babysitting (10) - UNDER BUDGET ($200)
       {
         amount: "80.00",
         description: "Weekend babysitter",
@@ -270,15 +277,15 @@ export class MemStorage implements IStorage {
         partnerIndex: 1,
         daysAgo: 13,
       },
-      // Housekeeping (11)
+      // Housekeeping (11) - EQUALS BUDGET ($150)
       {
-        amount: "120.00",
+        amount: "150.00",
         description: "Monthly house cleaning",
         categoryIndex: 11,
         partnerIndex: 0,
         daysAgo: 24,
       },
-      // Supplement/medicine (12)
+      // Supplement/medicine (12) - UNDER BUDGET ($100)
       {
         amount: "45.00",
         description: "Vitamins and supplements",
@@ -312,7 +319,7 @@ export class MemStorage implements IStorage {
       {
         amount: "200.00",
         description: "Car service and oil change",
-        categoryIndex: 7, // Additional transport
+        categoryIndex: 7, // Transport
         partnerIndex: 0,
         daysAgo: 45,
       },
@@ -354,7 +361,7 @@ export class MemStorage implements IStorage {
       {
         amount: "90.00",
         description: "Gas and car wash",
-        categoryIndex: 7, // Additional transport
+        categoryIndex: 7, // Transport
         partnerIndex: 1,
         daysAgo: 75,
       },

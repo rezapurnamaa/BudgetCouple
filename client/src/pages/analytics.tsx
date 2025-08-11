@@ -200,12 +200,24 @@ export default function Analytics() {
                         formatter={(value: number, name: string, props: any) => {
                           const isSpent = name === 'spent';
                           const category = categoryComparison.find(c => c.name === props.payload?.name);
-                          const isOverBudget = category && category.spent > category.budget && category.budget > 0;
+                          if (!category) return [`$${value.toFixed(2)}`, name];
                           
-                          return [
-                            `$${value.toFixed(2)}`, 
-                            isSpent ? (isOverBudget ? 'Spent (Over Budget!)' : 'Spent') : 'Budget'
-                          ];
+                          const isOverBudget = category.spent > category.budget && category.budget > 0;
+                          const isEqualBudget = category.spent === category.budget && category.budget > 0;
+                          
+                          if (isSpent) {
+                            if (isOverBudget) {
+                              const overAmount = category.spent - category.budget;
+                              return [`$${value.toFixed(2)}`, `Spent (Over by $${overAmount.toFixed(2)}!)`];
+                            } else if (isEqualBudget) {
+                              return [`$${value.toFixed(2)}`, 'Spent (0% budget remaining)'];
+                            } else {
+                              const remaining = category.budget - category.spent;
+                              const remainingPercent = category.budget > 0 ? ((remaining / category.budget) * 100).toFixed(0) : '0';
+                              return [`$${value.toFixed(2)}`, `Spent (${remainingPercent}% budget remaining)`];
+                            }
+                          }
+                          return [`$${value.toFixed(2)}`, 'Budget'];
                         }}
                         labelStyle={{ color: '#374151' }}
                         contentStyle={{ 
