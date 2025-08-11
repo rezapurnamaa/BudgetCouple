@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,10 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
-import { format, subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type DateRange = "30-days" | "60-days" | "90-days" | "custom";
+import { useDateRange } from "@/contexts/date-range-context";
 
 interface SpendingData {
   name: string;
@@ -36,9 +35,18 @@ interface SpendingData {
 }
 
 export default function SpendingChart() {
-  const [dateRange, setDateRange] = useState<DateRange>("30-days");
-  const [customStartDate, setCustomStartDate] = useState<Date>();
-  const [customEndDate, setCustomEndDate] = useState<Date>();
+  const {
+    dateRange,
+    setDateRange,
+    customStartDate,
+    setCustomStartDate,
+    customEndDate,
+    setCustomEndDate,
+    startDate,
+    endDate,
+    dayCount,
+    budgetMultiplier
+  } = useDateRange();
   
   const { data: expenses = [] } = useQuery({
     queryKey: ["/api/expenses"],
@@ -48,39 +56,7 @@ export default function SpendingChart() {
     queryKey: ["/api/categories"],
   });
 
-  // Calculate date range
-  const { startDate, endDate, dayCount } = useMemo(() => {
-    const now = new Date();
-    let start: Date;
-    let end: Date = now;
-    
-    if (dateRange === "custom" && customStartDate && customEndDate) {
-      start = customStartDate;
-      end = customEndDate;
-    } else {
-      switch (dateRange) {
-        case "30-days":
-          start = subDays(now, 30);
-          break;
-        case "60-days":
-          start = subDays(now, 60);
-          break;
-        case "90-days":
-          start = subDays(now, 90);
-          break;
-        default:
-          start = subDays(now, 30);
-      }
-    }
-    
-    const dayCount = differenceInDays(endOfDay(end), startOfDay(start)) + 1;
-    
-    return {
-      startDate: startOfDay(start),
-      endDate: endOfDay(end),
-      dayCount
-    };
-  }, [dateRange, customStartDate, customEndDate]);
+  // Date range now comes from context
 
   // Filter expenses by date range and calculate spending data with proportional budgets
   const { chartData, totalSpent, totalBudget, filteredExpenses } = useMemo(() => {
@@ -89,9 +65,6 @@ export default function SpendingChart() {
       const expenseDate = new Date(expense.date);
       return expenseDate >= startDate && expenseDate <= endDate;
     });
-
-    // Calculate proportional budget based on date range (assuming monthly budgets)
-    const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
 
     const spendingData: SpendingData[] = categories
       .map((category: any) => {
@@ -132,7 +105,7 @@ export default function SpendingChart() {
       totalBudget,
       filteredExpenses,
     };
-  }, [expenses, categories, startDate, endDate, dayCount]);
+  }, [expenses, categories, startDate, endDate, budgetMultiplier]);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -168,7 +141,6 @@ export default function SpendingChart() {
     return null;
   };
 
-  const budgetMultiplier = dayCount / 30;
   const budgetRemaining = totalBudget - totalSpent;
   const overBudgetAmount = totalSpent > totalBudget ? totalSpent - totalBudget : 0;
 

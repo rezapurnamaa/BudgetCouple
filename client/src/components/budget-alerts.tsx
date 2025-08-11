@@ -3,8 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, CheckCircle, TrendingUp } from "lucide-react";
 import type { Category, Expense } from "@shared/schema";
+import { useDateRange } from "@/contexts/date-range-context";
+import { format } from "date-fns";
 
 export default function BudgetAlerts() {
+  const { startDate, endDate, budgetMultiplier } = useDateRange();
+  
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
@@ -13,17 +17,17 @@ export default function BudgetAlerts() {
     queryKey: ["/api/expenses"],
   });
 
-  // Calculate spending per category for current month
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const monthlyExpenses = expenses.filter((expense: any) => {
+  // Filter expenses by selected date range
+  const filteredExpenses = expenses.filter((expense: any) => {
     if (!expense || !expense.date) return false;
-    return new Date(expense.date).toISOString().slice(0, 7) === currentMonth;
+    const expenseDate = new Date(expense.date);
+    return expenseDate >= startDate && expenseDate <= endDate;
   });
 
   const categoryAlerts = categories.map((category: Category) => {
     if (!category) return null;
     
-    const spent = monthlyExpenses
+    const spent = filteredExpenses
       .filter((expense: any) => expense && expense.categoryId === category.id)
       .reduce((sum: number, expense: any) => {
         if (!expense || !expense.amount) return sum;
@@ -31,8 +35,10 @@ export default function BudgetAlerts() {
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0);
     
-    const budget = parseFloat(category.budget || "0");
-    if (budget <= 0) return null;
+    // Calculate proportional budget for the selected date range
+    const monthlyBudget = parseFloat(category.budget || "0");
+    if (monthlyBudget <= 0) return null;
+    const budget = monthlyBudget * budgetMultiplier;
     
     const percentage = (spent / budget) * 100;
     const remaining = budget - spent;
@@ -84,6 +90,9 @@ export default function BudgetAlerts() {
             <CheckCircle className="h-5 w-5 text-green-600" />
             <span>Budget Status</span>
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+          </p>
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
@@ -102,6 +111,9 @@ export default function BudgetAlerts() {
           <AlertTriangle className="h-5 w-5 text-amber-600" />
           <span>Budget Alerts</span>
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+        </p>
       </CardHeader>
       <CardContent className="space-y-3">
         {alertsToShow.map((alert: any) => {

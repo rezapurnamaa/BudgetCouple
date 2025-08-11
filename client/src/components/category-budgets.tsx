@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useDateRange } from "@/contexts/date-range-context";
+import { format } from "date-fns";
 
 export default function CategoryBudgets() {
+  const { startDate, endDate, budgetMultiplier } = useDateRange();
+  
   const { data: categories = [] } = useQuery({
     queryKey: ["/api/categories"],
   });
@@ -11,30 +15,36 @@ export default function CategoryBudgets() {
     queryKey: ["/api/expenses"],
   });
 
-  // Calculate spending per category with defensive checks
+  // Calculate spending per category with date range filtering and proportional budgets
   const categorySpending = categories.map(category => {
     if (!category) return null;
     
-    const spent = expenses
-      .filter(expense => expense && expense.categoryId === category.id)
-      .reduce((sum, expense) => {
-        if (!expense || !expense.amount) return sum;
-        const amount = parseFloat(expense.amount);
-        return sum + (isNaN(amount) ? 0 : amount);
-      }, 0);
+    // Filter expenses by selected date range
+    const filteredExpenses = expenses.filter((expense: any) => {
+      if (!expense?.date || expense.categoryId !== category.id) return false;
+      const expenseDate = new Date(expense.date);
+      return expenseDate >= startDate && expenseDate <= endDate;
+    });
     
-    const budget = parseFloat(category.budget || "0");
-    const budgetSafe = isNaN(budget) ? 0 : budget;
-    const remaining = budgetSafe - spent;
-    const percentage = budgetSafe > 0 ? Math.min((spent / budgetSafe) * 100, 100) : 0;
+    const spent = filteredExpenses.reduce((sum: number, expense: any) => {
+      if (!expense || !expense.amount) return sum;
+      const amount = parseFloat(expense.amount);
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
+    
+    // Calculate proportional budget for the selected date range
+    const monthlyBudget = parseFloat(category.budget || "0");
+    const budget = isNaN(monthlyBudget) ? 0 : monthlyBudget * budgetMultiplier;
+    const remaining = budget - spent;
+    const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;
     
     return {
       ...category,
       spent,
-      budget: budgetSafe,
+      budget,
       remaining,
       percentage,
-      isOverBudget: spent > budgetSafe && budgetSafe > 0,
+      isOverBudget: spent > budget && budget > 0,
     };
   }).filter(Boolean);
 
@@ -42,6 +52,9 @@ export default function CategoryBudgets() {
     <Card>
       <CardHeader>
         <CardTitle>Category Budgets</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')} ({budgetMultiplier.toFixed(2)}x monthly budget)
+        </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">

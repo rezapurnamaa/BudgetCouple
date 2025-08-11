@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Edit, Trash2, CheckSquare, Square } from "lucide-react";
+import { Search, Edit, Trash2, CheckSquare, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ExpenseHistory() {
   const { toast } = useToast();
@@ -19,6 +21,7 @@ export default function ExpenseHistory() {
   const [partnerFilter, setPartnerFilter] = useState("all");
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["/api/expenses"],
@@ -90,6 +93,17 @@ export default function ExpenseHistory() {
     
     return matchesSearch && matchesCategory && matchesPartner;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredExpenses.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, categoryFilter, partnerFilter]);
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this expense?")) {
@@ -239,9 +253,10 @@ export default function ExpenseHistory() {
             {expenses.length === 0 ? "No expenses yet. Add your first expense above!" : "No expenses match your filters."}
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {filteredExpenses.map((expense) => (
-              <div key={expense.id} className="py-4 hover:bg-muted/50 transition-colors rounded-lg px-2">
+          <>
+            <div className="divide-y divide-border">
+              {paginatedExpenses.map((expense) => (
+                <div key={expense.id} className="py-4 hover:bg-muted/50 transition-colors rounded-lg px-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     {isSelectionMode && (
@@ -303,9 +318,39 @@ export default function ExpenseHistory() {
                     )}
                   </div>
                 </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages} • {filteredExpenses.length} total
+                </div>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

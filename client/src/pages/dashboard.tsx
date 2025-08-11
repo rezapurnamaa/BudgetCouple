@@ -1,4 +1,3 @@
-import { createContext, useContext, useState, ReactNode, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, CreditCard, PiggyBank, Receipt } from "lucide-react";
@@ -10,25 +9,8 @@ import BottomNavigation from "@/components/bottom-navigation";
 import BudgetAlerts from "@/components/budget-alerts";
 import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
 import { subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
-
-// Create context for sharing date range between components
-interface DateRangeContextType {
-  startDate: Date;
-  endDate: Date;
-  dayCount: number;
-  budgetMultiplier: number;
-}
-
-const DateRangeContext = createContext<DateRangeContextType | null>(null);
-
-export const useDateRange = () => {
-  const context = useContext(DateRangeContext);
-  if (!context) {
-    throw new Error('useDateRange must be used within DateRangeProvider');
-  }
-  return context;
-};
 
 interface DashboardStats {
   totalSpent: number;
@@ -36,7 +18,7 @@ interface DashboardStats {
   transactionCount: number;
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const isMobile = useIsMobile();
   
   const { data: expenses = [] } = useQuery({
@@ -202,5 +184,13 @@ export default function Dashboard() {
         </>
       )}
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <DateRangeProvider>
+      <DashboardContent />
+    </DateRangeProvider>
   );
 }
