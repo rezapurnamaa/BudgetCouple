@@ -9,8 +9,9 @@ import BudgetAlerts from "@/components/budget-alerts";
 import BottomNavigation from "@/components/bottom-navigation";
 import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { DateRangeProvider } from "@/contexts/date-range-context";
 
-export default function Analytics() {
+function AnalyticsContent() {
   const [timeRange, setTimeRange] = useState("6months");
   const isMobile = useIsMobile();
 
@@ -259,5 +260,13 @@ export default function Analytics() {
       {/* Mobile Navigation */}
       {isMobile && <BottomNavigation />}
     </div>
+  );
+}
+
+export default function Analytics() {
+  return (
+    <DateRangeProvider>
+      <AnalyticsContent />
+    </DateRangeProvider>
   );
 }
