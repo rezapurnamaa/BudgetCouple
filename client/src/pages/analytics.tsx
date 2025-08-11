@@ -70,29 +70,39 @@ function AnalyticsContent() {
         transactions: weekExpenses.length
       };
     }) :
-    // Monthly data
-    Array.from({ length: 6 }, (_, i) => {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = date.toISOString().slice(0, 7);
+    // Monthly data - generate months for the selected date range
+    (() => {
+      const months = [];
+      const current = new Date(startDate);
+      current.setDate(1); // Start at beginning of month
       
-      const monthExpenses = filteredExpenses.filter(expense => {
-        if (!expense || !expense.date) return false;
-        return new Date(expense.date).toISOString().slice(0, 7) === monthKey;
-      });
+      while (current <= endDate) {
+        const monthStart = new Date(current);
+        const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0); // Last day of month
+        
+        const monthExpenses = filteredExpenses.filter(expense => {
+          if (!expense || !expense.date) return false;
+          const expenseDate = new Date(expense.date);
+          return expenseDate >= monthStart && expenseDate <= monthEnd;
+        });
+        
+        const total = monthExpenses.reduce((sum, expense) => {
+          if (!expense || !expense.amount) return sum;
+          const amount = parseFloat(expense.amount);
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+        
+        months.push({
+          period: current.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          total: total,
+          transactions: monthExpenses.length
+        });
+        
+        current.setMonth(current.getMonth() + 1);
+      }
       
-      const total = monthExpenses.reduce((sum, expense) => {
-        if (!expense || !expense.amount) return sum;
-        const amount = parseFloat(expense.amount);
-        return sum + (isNaN(amount) ? 0 : amount);
-      }, 0);
-      
-      return {
-        period: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        total: total,
-        transactions: monthExpenses.length
-      };
-    }).reverse();
+      return months;
+    })();
 
   // Category spending comparison (filtered by date range)
   const categoryComparison = categories.map(category => {
@@ -219,8 +229,11 @@ function AnalyticsContent() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5" />
-                  <span>Monthly Spending Trend</span>
+                  <span>{showWeeklyData ? 'Weekly' : 'Monthly'} Spending Trend</span>
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="h-80">
@@ -280,6 +293,9 @@ function AnalyticsContent() {
                   <CalendarIcon className="h-5 w-5" />
                   <span>Budget vs Actual Spending</span>
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="h-80">
