@@ -1,7 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+} from "recharts";
 
 export default function SpendingChart() {
   const { data: expenses = [] } = useQuery({
@@ -13,24 +26,26 @@ export default function SpendingChart() {
   });
 
   // Calculate spending by category with defensive checks
-  const chartData = categories.map(category => {
-    if (!category) return null;
-    
-    const spent = expenses
-      .filter(expense => expense && expense.categoryId === category.id)
-      .reduce((sum, expense) => {
-        if (!expense || !expense.amount) return sum;
-        const amount = parseFloat(expense.amount);
-        return sum + (isNaN(amount) ? 0 : amount);
-      }, 0);
-    
-    return {
-      name: category.name || 'Unknown',
-      value: spent,
-      color: category.color || '#6B7280',
-      emoji: category.emoji || '📝',
-    };
-  }).filter(item => item && item.value > 0);
+  const chartData = categories
+    .map((category) => {
+      if (!category) return null;
+
+      const spent = expenses
+        .filter((expense) => expense && expense.categoryId === category.id)
+        .reduce((sum, expense) => {
+          if (!expense || !expense.amount) return sum;
+          const amount = parseFloat(expense.amount);
+          return sum + (isNaN(amount) ? 0 : amount);
+        }, 0);
+
+      return {
+        name: category.name || "Unknown",
+        value: spent,
+        color: category.color || "#6B7280",
+        emoji: category.emoji || "📝",
+      };
+    })
+    .filter((item) => item && item.value > 0);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -85,8 +100,8 @@ export default function SpendingChart() {
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  verticalAlign="bottom" 
+                <Legend
+                  verticalAlign="bottom"
                   height={36}
                   formatter={(value, entry: any) => (
                     <span style={{ color: entry.color }}>
