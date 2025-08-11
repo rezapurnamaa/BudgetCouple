@@ -18,7 +18,7 @@ import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 function AnalyticsContent() {
   const [timeRange, setTimeRange] = useState("6months");
   const isMobile = useIsMobile();
-  const { startDate, endDate, setDateRange } = useDateRange();
+  const { startDate, endDate, setCustomDateRange } = useDateRange();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const { data: expenses = [] } = useQuery({
@@ -155,7 +155,7 @@ function AnalyticsContent() {
                     onClick={() => {
                       const end = new Date();
                       const start = subDays(end, 6);
-                      setDateRange(start, end);
+                      setCustomDateRange(start, end);
                     }}
                   >
                     7 days
@@ -166,7 +166,7 @@ function AnalyticsContent() {
                     onClick={() => {
                       const end = new Date();
                       const start = subDays(end, 29);
-                      setDateRange(start, end);
+                      setCustomDateRange(start, end);
                     }}
                   >
                     30 days
@@ -177,7 +177,7 @@ function AnalyticsContent() {
                     onClick={() => {
                       const end = endOfMonth(new Date());
                       const start = startOfMonth(new Date());
-                      setDateRange(start, end);
+                      setCustomDateRange(start, end);
                     }}
                   >
                     This month
@@ -204,7 +204,7 @@ function AnalyticsContent() {
                       selected={{ from: startDate, to: endDate }}
                       onSelect={(range) => {
                         if (range?.from && range?.to) {
-                          setDateRange(range.from, range.to);
+                          setCustomDateRange(range.from, range.to);
                           setIsCalendarOpen(false);
                         }
                       }}

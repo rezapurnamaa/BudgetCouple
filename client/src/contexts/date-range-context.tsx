@@ -14,6 +14,8 @@ interface DateRangeContextType {
   endDate: Date;
   dayCount: number;
   budgetMultiplier: number;
+  // Add convenient method for setting custom range
+  setCustomDateRange: (start: Date, end: Date) => void;
 }
 
 const DateRangeContext = createContext<DateRangeContextType | null>(null);
@@ -71,6 +73,12 @@ export function DateRangeProvider({ children }: DateRangeProviderProps) {
     };
   }, [dateRange, customStartDate, customEndDate]);
 
+  const setCustomDateRange = (start: Date, end: Date) => {
+    setCustomStartDate(start);
+    setCustomEndDate(end);
+    setDateRange("custom");
+  };
+
   return (
     <DateRangeContext.Provider value={{
       dateRange,
@@ -82,7 +90,8 @@ export function DateRangeProvider({ children }: DateRangeProviderProps) {
       startDate,
       endDate,
       dayCount,
-      budgetMultiplier
+      budgetMultiplier,
+      setCustomDateRange
     }}>
       {children}
     </DateRangeContext.Provider>
