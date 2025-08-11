@@ -31,21 +31,31 @@ export default function Dashboard() {
     queryKey: ["/api/partners"],
   });
 
-  // Calculate dashboard stats with defensive checks
-  const totalSpent = expenses.reduce((sum, expense) => {
+  // Calculate dashboard stats for current month (last 30 days)
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(now.getDate() - 30);
+  
+  const currentMonthExpenses = expenses.filter((expense: any) => {
+    if (!expense?.date) return false;
+    const expenseDate = new Date(expense.date);
+    return expenseDate >= thirtyDaysAgo && expenseDate <= now;
+  });
+  
+  const totalSpent = currentMonthExpenses.reduce((sum: number, expense: any) => {
     if (!expense || !expense.amount) return sum;
     const amount = parseFloat(expense.amount);
     return sum + (isNaN(amount) ? 0 : amount);
   }, 0);
   
-  const totalBudget = categories.reduce((sum, cat) => {
+  const totalBudget = categories.reduce((sum: number, cat: any) => {
     if (!cat || !cat.budget) return sum;
     const budget = parseFloat(cat.budget);
     return sum + (isNaN(budget) ? 0 : budget);
   }, 0);
   
   const budgetRemaining = totalBudget - totalSpent;
-  const transactionCount = expenses.length;
+  const transactionCount = currentMonthExpenses.length;
 
   return (
     <div className="min-h-screen bg-background">
