@@ -57,33 +57,19 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Default categories
     const defaultCategories = [
-      { name: "Grocery", emoji: "🛒", color: "#3B82F6", budget: "500.00" },
-      { name: "Eating Out", emoji: "🍽️", color: "#F59E0B", budget: "250.00" },
-      {
-        name: "Entertainment",
-        emoji: "🎤",
-        color: "#C59E0B",
-        budget: "250.00",
-      },
-      {
-        name: "Additional Transportation",
-        emoji: "🚗",
-        color: "#EF4444",
-        budget: "300.00",
-      },
-      {
-        name: "Subscriptions",
-        emoji: "📱",
-        color: "#8B5CF6",
-        budget: "150.00",
-      },
-      { name: "Gifts", emoji: "🎁", color: "#D59E0B", budget: "200.00" },
-      { name: "Potluck", emoji: "🫕", color: "#E59E0B", budget: "50.00" },
-      { name: "Shopping", emoji: "🛍️", color: "#10B981", budget: "200.00" },
-      { name: "Charity", emoji: "🍀", color: "#36B6D4", budget: "100.00" },
-      { name: "Healthcare", emoji: "🏥", color: "#06B6D4", budget: "100.00" },
-      { name: "Utilities", emoji: "⚡", color: "#84CC16", budget: "200.00" },
-      { name: "Other", emoji: "📝", color: "#6B7280", budget: "150.00" },
+      { name: "Groceries", emoji: "🛒", color: "#3B82F6", budget: "500.00" },
+      { name: "Eating out", emoji: "🍽️", color: "#F59E0B", budget: "250.00" },
+      { name: "Entertainment", emoji: "🎬", color: "#8B5CF6", budget: "200.00" },
+      { name: "Subscription", emoji: "📱", color: "#10B981", budget: "150.00" },
+      { name: "Gifts", emoji: "🎁", color: "#EF4444", budget: "200.00" },
+      { name: "Potluck", emoji: "🫕", color: "#F97316", budget: "100.00" },
+      { name: "Charity", emoji: "❤️", color: "#EC4899", budget: "100.00" },
+      { name: "Additional transport", emoji: "🚗", color: "#84CC16", budget: "300.00" },
+      { name: "Vacation", emoji: "✈️", color: "#06B6D4", budget: "800.00" },
+      { name: "Emergency spending", emoji: "🚨", color: "#DC2626", budget: "500.00" },
+      { name: "Babysitting", emoji: "👶", color: "#A855F7", budget: "200.00" },
+      { name: "Housekeeping", emoji: "🧹", color: "#059669", budget: "150.00" },
+      { name: "Supplement/medicine", emoji: "💊", color: "#0891B2", budget: "100.00" },
     ];
 
     const categoryIds: string[] = [];
@@ -112,162 +98,277 @@ export class MemStorage implements IStorage {
 
   private generateMockExpenses(categoryIds: string[], partnerIds: string[]) {
     const mockExpenses = [
-      // Current month
+      // Current month - Groceries (0)
       {
         amount: "85.32",
-        description: "Weekly groceries",
+        description: "Weekly groceries - Whole Foods",
         categoryIndex: 0,
         partnerIndex: 0,
         daysAgo: 1,
       },
       {
-        amount: "45.50",
-        description: "Gas station",
-        categoryIndex: 2,
+        amount: "92.15",
+        description: "Grocery shopping - Safeway",
+        categoryIndex: 0,
         partnerIndex: 1,
-        daysAgo: 2,
+        daysAgo: 8,
       },
       {
+        amount: "67.50",
+        description: "Fresh produce and meat",
+        categoryIndex: 0,
+        partnerIndex: 0,
+        daysAgo: 15,
+      },
+      // Eating out (1)
+      {
         amount: "120.00",
-        description: "Date night dinner",
+        description: "Date night dinner - Italian restaurant",
         categoryIndex: 1,
         partnerIndex: 0,
         daysAgo: 3,
       },
       {
-        amount: "25.99",
-        description: "Netflix subscription",
-        categoryIndex: 3,
+        amount: "35.00",
+        description: "Coffee and lunch",
+        categoryIndex: 1,
         partnerIndex: 1,
         daysAgo: 5,
       },
       {
-        amount: "150.00",
-        description: "New jacket",
-        categoryIndex: 4,
-        partnerIndex: 0,
-        daysAgo: 7,
-      },
-      {
-        amount: "75.00",
-        description: "Doctor visit",
-        categoryIndex: 5,
-        partnerIndex: 1,
-        daysAgo: 10,
-      },
-      {
-        amount: "180.50",
-        description: "Electric bill",
-        categoryIndex: 6,
+        amount: "78.50",
+        description: "Weekend brunch with friends",
+        categoryIndex: 1,
         partnerIndex: 0,
         daysAgo: 12,
       },
-      {
-        amount: "92.15",
-        description: "Grocery shopping",
-        categoryIndex: 0,
-        partnerIndex: 1,
-        daysAgo: 14,
-      },
-      {
-        amount: "35.00",
-        description: "Coffee and lunch",
-        categoryIndex: 1,
-        partnerIndex: 0,
-        daysAgo: 15,
-      },
-      {
-        amount: "60.00",
-        description: "Gym membership",
-        categoryIndex: 5,
-        partnerIndex: 1,
-        daysAgo: 18,
-      },
+      // Entertainment (2)
       {
         amount: "45.00",
-        description: "Uber rides",
+        description: "Movie tickets",
+        categoryIndex: 2,
+        partnerIndex: 1,
+        daysAgo: 7,
+      },
+      {
+        amount: "85.00",
+        description: "Concert tickets",
         categoryIndex: 2,
         partnerIndex: 0,
         daysAgo: 20,
       },
+      // Subscription (3)
+      {
+        amount: "15.99",
+        description: "Netflix subscription",
+        categoryIndex: 3,
+        partnerIndex: 1,
+        daysAgo: 2,
+      },
+      {
+        amount: "9.99",
+        description: "Spotify Premium",
+        categoryIndex: 3,
+        partnerIndex: 0,
+        daysAgo: 10,
+      },
+      {
+        amount: "12.99",
+        description: "Disney+ subscription",
+        categoryIndex: 3,
+        partnerIndex: 1,
+        daysAgo: 18,
+      },
+      // Gifts (4)
+      {
+        amount: "150.00",
+        description: "Birthday gift for Mom",
+        categoryIndex: 4,
+        partnerIndex: 0,
+        daysAgo: 14,
+      },
+      {
+        amount: "75.00",
+        description: "Anniversary gift",
+        categoryIndex: 4,
+        partnerIndex: 1,
+        daysAgo: 25,
+      },
+      // Potluck (5)
+      {
+        amount: "35.00",
+        description: "Office potluck contribution",
+        categoryIndex: 5,
+        partnerIndex: 0,
+        daysAgo: 9,
+      },
+      {
+        amount: "28.50",
+        description: "Friend's housewarming party",
+        categoryIndex: 5,
+        partnerIndex: 1,
+        daysAgo: 22,
+      },
+      // Charity (6)
+      {
+        amount: "100.00",
+        description: "Monthly charity donation",
+        categoryIndex: 6,
+        partnerIndex: 0,
+        daysAgo: 6,
+      },
+      // Additional transport (7)
+      {
+        amount: "45.50",
+        description: "Gas station fill-up",
+        categoryIndex: 7,
+        partnerIndex: 1,
+        daysAgo: 4,
+      },
+      {
+        amount: "25.00",
+        description: "Uber to airport",
+        categoryIndex: 7,
+        partnerIndex: 0,
+        daysAgo: 11,
+      },
+      {
+        amount: "60.00",
+        description: "Car maintenance",
+        categoryIndex: 7,
+        partnerIndex: 1,
+        daysAgo: 19,
+      },
+      // Vacation (8)
+      {
+        amount: "350.00",
+        description: "Flight tickets to Portland",
+        categoryIndex: 8,
+        partnerIndex: 0,
+        daysAgo: 16,
+      },
+      {
+        amount: "180.00",
+        description: "Hotel booking",
+        categoryIndex: 8,
+        partnerIndex: 1,
+        daysAgo: 17,
+      },
+      // Emergency spending (9)
+      {
+        amount: "400.00",
+        description: "Car repair - brake pads",
+        categoryIndex: 9,
+        partnerIndex: 0,
+        daysAgo: 21,
+      },
+      // Babysitting (10)
+      {
+        amount: "80.00",
+        description: "Weekend babysitter",
+        categoryIndex: 10,
+        partnerIndex: 1,
+        daysAgo: 13,
+      },
+      // Housekeeping (11)
+      {
+        amount: "120.00",
+        description: "Monthly house cleaning",
+        categoryIndex: 11,
+        partnerIndex: 0,
+        daysAgo: 24,
+      },
+      // Supplement/medicine (12)
+      {
+        amount: "45.00",
+        description: "Vitamins and supplements",
+        categoryIndex: 12,
+        partnerIndex: 1,
+        daysAgo: 23,
+      },
+      {
+        amount: "25.00",
+        description: "Pharmacy prescription",
+        categoryIndex: 12,
+        partnerIndex: 0,
+        daysAgo: 20,
+      },
 
-      // Last month
+      // Previous months
       {
         amount: "420.00",
-        description: "Monthly groceries",
-        categoryIndex: 0,
+        description: "Monthly groceries bulk buy",
+        categoryIndex: 0, // Groceries
         partnerIndex: 0,
         daysAgo: 35,
       },
       {
         amount: "65.00",
-        description: "Movie theater",
-        categoryIndex: 3,
+        description: "Movie theater date",
+        categoryIndex: 2, // Entertainment
         partnerIndex: 1,
         daysAgo: 40,
       },
       {
         amount: "200.00",
-        description: "Car maintenance",
-        categoryIndex: 2,
+        description: "Car service and oil change",
+        categoryIndex: 7, // Additional transport
         partnerIndex: 0,
         daysAgo: 45,
       },
       {
         amount: "180.00",
-        description: "Anniversary dinner",
-        categoryIndex: 1,
+        description: "Anniversary dinner celebration",
+        categoryIndex: 1, // Eating out
         partnerIndex: 1,
         daysAgo: 50,
       },
       {
         amount: "80.00",
-        description: "New shoes",
-        categoryIndex: 4,
+        description: "Wedding gift for cousin",
+        categoryIndex: 4, // Gifts
         partnerIndex: 0,
         daysAgo: 55,
       },
       {
-        amount: "95.00",
-        description: "Streaming services",
-        categoryIndex: 3,
+        amount: "38.97",
+        description: "Multiple streaming services",
+        categoryIndex: 3, // Subscription
         partnerIndex: 1,
         daysAgo: 58,
       },
-
-      // 2 months ago
       {
         amount: "380.50",
-        description: "Grocery haul",
-        categoryIndex: 0,
+        description: "Costco grocery shopping",
+        categoryIndex: 0, // Groceries
         partnerIndex: 1,
         daysAgo: 65,
       },
       {
-        amount: "55.00",
-        description: "Concert tickets",
-        categoryIndex: 3,
+        amount: "155.00",
+        description: "Broadway show tickets",
+        categoryIndex: 2, // Entertainment
         partnerIndex: 0,
         daysAgo: 70,
       },
       {
         amount: "90.00",
-        description: "Gas",
-        categoryIndex: 2,
+        description: "Gas and car wash",
+        categoryIndex: 7, // Additional transport
         partnerIndex: 1,
         daysAgo: 75,
       },
       {
         amount: "160.00",
-        description: "Birthday dinner",
-        categoryIndex: 1,
+        description: "Birthday dinner party",
+        categoryIndex: 1, // Eating out
         partnerIndex: 0,
         daysAgo: 80,
       },
       {
-        amount: "120.00",
-        description: "Clothing",
-        categoryIndex: 4,
+        amount: "320.00",
+        description: "Weekend getaway hotel",
+        categoryIndex: 8, // Vacation
         partnerIndex: 1,
         daysAgo: 85,
       },

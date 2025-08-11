@@ -34,6 +34,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Database Schema
 - **Categories**: Expense categories with emoji, color, and budget tracking
+  - Updated categories (August 2025): Groceries, Eating out, Entertainment, Subscription, Gifts, Potluck, Charity, Additional transport, Vacation, Emergency spending, Babysitting, Housekeeping, Supplement/medicine
 - **Partners**: User/partner management with color coding
 - **Expenses**: Transaction records with amount, description, category, partner, and date
 - **Relationships**: Foreign key relationships between expenses, categories, and partners
