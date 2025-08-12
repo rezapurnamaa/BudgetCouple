@@ -43,6 +43,17 @@ function AnalyticsContent() {
   // Generate spending data for the selected date range (by week or month based on range)
   const daysDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   const showWeeklyData = daysDifference <= 60; // Show weekly for 2 months or less, monthly for longer periods
+  
+  // Determine chart title based on specific date ranges
+  const getChartTitle = () => {
+    if (daysDifference <= 7) {
+      return 'Weekly Spending Trend';
+    } else if (daysDifference <= 30) {
+      return 'Monthly Spending Trend';
+    } else {
+      return 'Spending Trend';
+    }
+  };
 
   const timeSeriesData = showWeeklyData ? 
     // Weekly data
@@ -229,7 +240,7 @@ function AnalyticsContent() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5" />
-                  <span>{showWeeklyData ? 'Weekly' : 'Monthly'} Spending Trend</span>
+                  <span>{getChartTitle()}</span>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
