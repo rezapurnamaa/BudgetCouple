@@ -359,7 +359,10 @@ function SettingsContent() {
                           </p>
                         </div>
                       </div>
-                      <Dialog>
+                      <Dialog 
+                        open={editingCategory?.id === category.id} 
+                        onOpenChange={(open) => !open && setEditingCategory(null)}
+                      >
                         <DialogTrigger asChild>
                           <Button
                             variant="outline"
@@ -392,9 +395,12 @@ function SettingsContent() {
                               />
                             </div>
                             <div className="flex justify-end space-x-2">
-                              <DialogTrigger asChild>
-                                <Button variant="outline">Cancel</Button>
-                              </DialogTrigger>
+                              <Button 
+                                variant="outline"
+                                onClick={() => setEditingCategory(null)}
+                              >
+                                Cancel
+                              </Button>
                               <Button
                                 onClick={handleUpdateCategoryBudget}
                                 disabled={updateCategoryBudgetMutation.isPending}
