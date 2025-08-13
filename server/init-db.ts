@@ -38,8 +38,8 @@ export async function initializeDatabase() {
 
     // Create default partners
     const defaultPartners = [
-      { name: "Sarah", color: "#8B5CF6" },
-      { name: "Mike", color: "#F59E0B" },
+      { name: "Reza", color: "#8B5CF6" },
+      { name: "Luky", color: "#F59E0B" },
     ];
 
     const createdPartners = [];

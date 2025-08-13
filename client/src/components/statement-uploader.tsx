@@ -36,9 +36,11 @@ export function StatementUploader() {
   const { data: uploadedStatement } = useQuery<Statement>({
     queryKey: ['/api/statements', uploadedStatementId],
     enabled: !!uploadedStatementId,
-    refetchInterval: uploadedStatementId && ['pending', 'processing'].includes(
-      uploadedStatement?.status || ''
-    ) ? 2000 : false, // Refetch every 2 seconds while processing
+    refetchInterval: (data) => {
+      if (!uploadedStatementId) return false;
+      const status = data?.status || '';
+      return ['pending', 'processing'].includes(status) ? 2000 : false;
+    }, // Refetch every 2 seconds while processing
   });
 
   const uploadMutation = useMutation({
