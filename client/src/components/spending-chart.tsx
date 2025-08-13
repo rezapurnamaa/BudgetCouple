@@ -271,17 +271,17 @@ export default function SpendingChart() {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-64">
+      <CardContent className="pb-6">
+        <div className="h-80">
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
+                  cy="45%"
+                  innerRadius={50}
+                  outerRadius={90}
                   paddingAngle={2}
                   dataKey="value"
                 >
@@ -292,9 +292,14 @@ export default function SpendingChart() {
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="bottom"
-                  height={36}
+                  height={60}
+                  wrapperStyle={{
+                    paddingTop: '10px',
+                    fontSize: '12px',
+                    lineHeight: '1.2'
+                  }}
                   formatter={(value, entry: any) => (
-                    <span style={{ color: entry.color }}>
+                    <span style={{ color: entry.color, fontSize: '12px' }}>
                       {entry.payload.emoji} {value}
                     </span>
                   )}
