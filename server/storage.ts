@@ -25,6 +25,8 @@ export interface IStorage {
   // Partners
   getPartners(): Promise<Partner[]>;
   createPartner(partner: InsertPartner): Promise<Partner>;
+  updatePartner(id: string, partner: Partial<InsertPartner>): Promise<Partner | undefined>;
+  deletePartner(id: string): Promise<boolean>;
 
   // Expenses
   getExpenses(): Promise<
@@ -84,19 +86,19 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Default categories
     const defaultCategories = [
-      { name: "Groceries", emoji: "🛒", color: "#3B82F6", budget: "500.00" },
-      { name: "Eating out", emoji: "🍽️", color: "#F59E0B", budget: "250.00" },
-      { name: "Entertainment", emoji: "🎬", color: "#8B5CF6", budget: "200.00" },
-      { name: "Subscription", emoji: "📱", color: "#10B981", budget: "150.00" },
-      { name: "Gifts", emoji: "🎁", color: "#EF4444", budget: "200.00" },
-      { name: "Potluck", emoji: "🫕", color: "#F97316", budget: "100.00" },
-      { name: "Charity", emoji: "❤️", color: "#EC4899", budget: "100.00" },
-      { name: "Transport", emoji: "🚗", color: "#84CC16", budget: "300.00" },
-      { name: "Vacation", emoji: "✈️", color: "#06B6D4", budget: "800.00" },
-      { name: "Emergency spending", emoji: "🚨", color: "#DC2626", budget: "500.00" },
-      { name: "Babysitting", emoji: "👶", color: "#A855F7", budget: "200.00" },
-      { name: "Housekeeping", emoji: "🧹", color: "#059669", budget: "150.00" },
-      { name: "Supplement/medicine", emoji: "💊", color: "#0891B2", budget: "100.00" },
+      { name: "Groceries", emoji: "🛒", color: "#3B82F6", budget: "500.00", monthlyBudget: "500.00" },
+      { name: "Eating out", emoji: "🍽️", color: "#F59E0B", budget: "250.00", monthlyBudget: "250.00" },
+      { name: "Entertainment", emoji: "🎬", color: "#8B5CF6", budget: "200.00", monthlyBudget: "200.00" },
+      { name: "Subscription", emoji: "📱", color: "#10B981", budget: "150.00", monthlyBudget: "150.00" },
+      { name: "Gifts", emoji: "🎁", color: "#EF4444", budget: "200.00", monthlyBudget: "200.00" },
+      { name: "Potluck", emoji: "🫕", color: "#F97316", budget: "100.00", monthlyBudget: "100.00" },
+      { name: "Charity", emoji: "❤️", color: "#EC4899", budget: "100.00", monthlyBudget: "100.00" },
+      { name: "Transport", emoji: "🚗", color: "#84CC16", budget: "300.00", monthlyBudget: "300.00" },
+      { name: "Vacation", emoji: "✈️", color: "#06B6D4", budget: "800.00", monthlyBudget: "800.00" },
+      { name: "Emergency spending", emoji: "🚨", color: "#DC2626", budget: "500.00", monthlyBudget: "500.00" },
+      { name: "Babysitting", emoji: "👶", color: "#A855F7", budget: "200.00", monthlyBudget: "200.00" },
+      { name: "Housekeeping", emoji: "🧹", color: "#059669", budget: "150.00", monthlyBudget: "150.00" },
+      { name: "Supplement/medicine", emoji: "💊", color: "#0891B2", budget: "100.00", monthlyBudget: "100.00" },
     ];
 
     const categoryIds: string[] = [];
@@ -509,7 +511,8 @@ export class MemStorage implements IStorage {
     const category: Category = { 
       ...insertCategory, 
       id,
-      budget: insertCategory.budget ?? null
+      budget: insertCategory.budget ?? null,
+      monthlyBudget: insertCategory.monthlyBudget ?? null
     };
     this.categories.set(id, category);
     return category;
@@ -542,6 +545,19 @@ export class MemStorage implements IStorage {
     return partner;
   }
 
+  async updatePartner(id: string, updateData: Partial<InsertPartner>): Promise<Partner | undefined> {
+    const existing = this.partners.get(id);
+    if (!existing) return undefined;
+    
+    const updated: Partner = { ...existing, ...updateData };
+    this.partners.set(id, updated);
+    return updated;
+  }
+
+  async deletePartner(id: string): Promise<boolean> {
+    return this.partners.delete(id);
+  }
+
   async getExpenses(): Promise<
     (Expense & { category: Category; partner: Partner })[]
   > {
@@ -558,6 +574,7 @@ export class MemStorage implements IStorage {
             emoji: "❓",
             color: "#6B7280",
             budget: null,
+            monthlyBudget: null,
           },
           partner: partner || { id: "", name: "Unknown", color: "#6B7280" },
         };
@@ -630,6 +647,7 @@ export class MemStorage implements IStorage {
           emoji: "❓",
           color: "#6B7280",
           budget: null,
+          monthlyBudget: null,
         },
       };
     });
@@ -706,6 +724,7 @@ export class MemStorage implements IStorage {
       id,
       startDate: new Date(insertBudgetPeriod.startDate),
       endDate: new Date(insertBudgetPeriod.endDate),
+      isActive: insertBudgetPeriod.isActive ?? 0,
       createdAt: new Date(),
     };
     this.budgetPeriods.set(id, budgetPeriod);

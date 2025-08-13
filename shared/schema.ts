@@ -9,6 +9,7 @@ export const categories = pgTable("categories", {
   emoji: text("emoji").notNull(),
   color: text("color").notNull(),
   budget: decimal("budget", { precision: 10, scale: 2 }),
+  monthlyBudget: decimal("monthly_budget", { precision: 10, scale: 2 }).default("0"),
 });
 
 export const partners = pgTable("partners", {
@@ -32,10 +33,10 @@ export const expenses = pgTable("expenses", {
 
 export const budgetPeriods = pgTable("budget_periods", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  categoryId: varchar("category_id").notNull(),
+  name: text("name").notNull(),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
-  budgetAmount: decimal("budget_amount", { precision: 10, scale: 2 }).notNull(),
+  isActive: integer("is_active").default(0), // 0 = false, 1 = true (SQLite compatibility)
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -70,6 +71,9 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
 export const insertBudgetPeriodSchema = createInsertSchema(budgetPeriods).omit({
   id: true,
   createdAt: true,
+}).extend({
+  startDate: z.string(),
+  endDate: z.string(),
 });
 
 export const insertStatementSchema = createInsertSchema(statements).omit({

@@ -63,6 +63,22 @@ export class DatabaseStorage implements IStorage {
     return partner;
   }
 
+  async updatePartner(id: string, updateData: Partial<InsertPartner>): Promise<Partner | null> {
+    const [partner] = await db
+      .update(partners)
+      .set(updateData)
+      .where(eq(partners.id, id))
+      .returning();
+    return partner || null;
+  }
+
+  async deletePartner(id: string): Promise<boolean> {
+    const result = await db
+      .delete(partners)
+      .where(eq(partners.id, id));
+    return result.rowCount > 0;
+  }
+
   // Expenses
   async getExpenses(): Promise<
     (Expense & { category: Category; partner: Partner })[]
@@ -86,6 +102,7 @@ export class DatabaseStorage implements IStorage {
         emoji: "❓",
         color: "#6B7280",
         budget: null,
+        monthlyBudget: null,
       },
       partner: partner || { id: "", name: "Unknown", color: "#6B7280" },
     }));
@@ -182,6 +199,7 @@ export class DatabaseStorage implements IStorage {
         emoji: "❓",
         color: "#6B7280",
         budget: null,
+        monthlyBudget: null,
       },
     }));
   }

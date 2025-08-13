@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
 import History from "@/pages/history";
 import Upload from "@/pages/upload";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/analytics" component={Analytics} />
       <Route path="/history" component={History} />
       <Route path="/upload" component={Upload} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -106,6 +106,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/partners/:id", async (req, res) => {
+    try {
+      const result = insertPartnerSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid partner data", errors: result.error.errors });
+      }
+      
+      const partner = await storage.updatePartner(req.params.id, result.data);
+      if (!partner) {
+        return res.status(404).json({ message: "Partner not found" });
+      }
+      
+      res.json(partner);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update partner" });
+    }
+  });
+
+  app.delete("/api/partners/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deletePartner(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Partner not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete partner" });
+    }
+  });
+
   // Expenses
   app.get("/api/expenses", async (req, res) => {
     try {
