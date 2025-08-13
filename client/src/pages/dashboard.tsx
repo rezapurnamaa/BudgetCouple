@@ -183,17 +183,16 @@ function DashboardContent() {
 
             {/* Spending Chart */}
             <SpendingChart />
-          </div>
 
-          {/* Categories and History Sidebar */}
-          <div className="space-y-6">
-            <CategoryBudgets />
-            
-            {/* Expense History - moved under category budgets */}
-            <div className="max-h-80 overflow-hidden">
+            {/* Expense History - below spending chart on desktop, bottom on mobile */}
+            <div className="mt-6">
               <ExpenseHistory />
             </div>
-            
+          </div>
+
+          {/* Categories Sidebar */}
+          <div className="space-y-6">
+            <CategoryBudgets />
             <BudgetAlerts />
           </div>
         </div>

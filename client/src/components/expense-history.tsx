@@ -152,61 +152,62 @@ export default function ExpenseHistory() {
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Recent Transactions</CardTitle>
-          {filteredExpenses.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleSelectionMode}
-              className="flex items-center space-x-1 text-xs"
-            >
-              {isSelectionMode ? <Square className="h-3 w-3" /> : <CheckSquare className="h-3 w-3" />}
-              <span>{isSelectionMode ? "Cancel" : "Select"}</span>
-            </Button>
-          )}
-        </div>
-        
-        {/* Simplified filters for sidebar */}
-        <div className="flex space-x-2 mt-3">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="text-xs">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.emoji} {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-3">
+            <CardTitle>Recent Transactions</CardTitle>
+            {filteredExpenses.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSelectionMode}
+                className="flex items-center space-x-2"
+              >
+                {isSelectionMode ? <Square className="h-4 w-4" /> : <CheckSquare className="h-4 w-4" />}
+                <span>{isSelectionMode ? "Cancel" : "Select"}</span>
+              </Button>
+            )}
+          </div>
           
-          <Select value={partnerFilter} onValueChange={setPartnerFilter}>
-            <SelectTrigger className="text-xs">
-              <SelectValue placeholder="Partner" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Both Partners</SelectItem>
-              {partners.map((partner) => (
-                <SelectItem key={partner.id} value={partner.id}>
-                  {partner.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="relative mt-2">
-          <Input
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 text-xs h-8"
-          />
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-auto">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.emoji} {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={partnerFilter} onValueChange={setPartnerFilter}>
+              <SelectTrigger className="w-full sm:w-auto">
+                <SelectValue placeholder="Both Partners" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Both Partners</SelectItem>
+                {partners.map((partner) => (
+                  <SelectItem key={partner.id} value={partner.id}>
+                    {partner.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <div className="relative">
+              <Input
+                placeholder="Search transactions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            </div>
+          </div>
         </div>
         
         {/* Bulk actions bar */}
@@ -246,103 +247,113 @@ export default function ExpenseHistory() {
         )}
       </CardHeader>
       
-      <CardContent className="p-4">
+      <CardContent>
         {filteredExpenses.length === 0 ? (
-          <div className="text-center py-6 text-muted-foreground text-sm">
-            {expenses.length === 0 ? "No expenses yet" : "No matches"}
+          <div className="text-center py-8 text-muted-foreground">
+            {expenses.length === 0 ? "No expenses yet. Add your first expense above!" : "No expenses match your filters."}
           </div>
         ) : (
           <>
-            <div className="space-y-2 max-h-56 overflow-y-auto">
+            <div className="divide-y divide-border">
               {paginatedExpenses.map((expense) => {
                 const category = categories.find(c => c.id === expense.categoryId);
                 const partner = partners.find(p => p.id === expense.partnerId);
                 
                 return (
-                  <div 
-                    key={expense.id} 
-                    className="flex items-center justify-between p-2 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    {isSelectionMode && (
-                      <Checkbox
-                        checked={selectedExpenses.includes(expense.id)}
-                        onCheckedChange={() => handleSelectExpense(expense.id)}
-                        className="mr-2"
-                      />
-                    )}
-                    
-                    <div className="flex items-center space-x-2 flex-1 min-w-0">
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs flex-shrink-0" 
-                           style={{ backgroundColor: category?.color || '#6B7280' }}>
-                        <span className="text-white">{category?.emoji || '📝'}</span>
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate text-sm">
-                          {expense.description}
-                        </p>
-                        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                          <span className="truncate">{category?.name || 'Unknown'}</span>
-                          <span>•</span>
-                          <span className="truncate" style={{ color: partner?.color || '#6B7280' }}>
-                            {partner?.name || 'Unknown'}
-                          </span>
+                  <div key={expense.id} className="py-4 hover:bg-muted/50 transition-colors rounded-lg px-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        {isSelectionMode && (
+                          <Checkbox
+                            checked={selectedExpenses.includes(expense.id)}
+                            onCheckedChange={() => handleSelectExpense(expense.id)}
+                          />
+                        )}
+                        <div 
+                          className="w-12 h-12 rounded-lg flex items-center justify-center text-lg"
+                          style={{ backgroundColor: category?.color ? `${category.color}20` : '#e5e7eb' }}
+                        >
+                          {category?.emoji || '📝'}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{expense.description}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            {category && (
+                              <Badge 
+                                variant="secondary"
+                                style={{ 
+                                  backgroundColor: `${category.color}20`,
+                                  color: category.color,
+                                }}
+                              >
+                                {category.name}
+                              </Badge>
+                            )}
+                            {partner && (
+                              <div className="flex items-center space-x-1">
+                                <div 
+                                  className="w-2 h-2 rounded-full" 
+                                  style={{ backgroundColor: partner.color }}
+                                />
+                                <span className="text-sm text-muted-foreground">{partner.name}</span>
+                              </div>
+                            )}
+                            <span className="text-sm text-muted-foreground">
+                              {expense.date ? format(new Date(expense.date), "MMM d, yyyy") : 'No date'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <div className="text-right flex items-center space-x-1 flex-shrink-0">
-                      <div>
-                        <p className="font-semibold text-foreground text-sm">
-                          ${expense.amount ? parseFloat(expense.amount).toFixed(2) : '0.00'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {expense.date ? format(new Date(expense.date), 'MMM d') : 'No date'}
-                        </p>
+                      <div className="text-right flex items-center space-x-2">
+                        <div>
+                          <p className="font-semibold text-foreground">
+                            ${expense.amount ? parseFloat(expense.amount).toFixed(2) : '0.00'}
+                          </p>
+                        </div>
+                        {!isSelectionMode && (
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(expense.id)}
+                              disabled={deleteExpenseMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      
-                      {!isSelectionMode && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(expense.id)}
-                          disabled={deleteExpenseMutation.isPending}
-                          className="h-6 w-6 p-0 hover:bg-red-50 hover:text-red-600"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Compact Pagination Controls */}
+            {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                <div className="flex items-center space-x-1">
+              <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="h-6 px-2 text-xs"
                   >
-                    <ChevronLeft className="h-3 w-3" />
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="h-6 px-2 text-xs"
                   >
-                    <ChevronRight className="h-3 w-3" />
+                    Next
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {currentPage}/{totalPages} • {filteredExpenses.length} total
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages} • {filteredExpenses.length} total
                 </div>
               </div>
             )}
