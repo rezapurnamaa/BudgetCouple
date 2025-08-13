@@ -91,6 +91,38 @@ export default function ExpenseHistory() {
     },
   });
 
+  const bulkUpdateCategoryMutation = useMutation({
+    mutationFn: async ({ ids, categoryId }: { ids: string[], categoryId: string }) => {
+      // Update all expenses in parallel
+      const updatePromises = ids.map(id => 
+        apiRequest(`/api/expenses/${id}`, {
+          method: "PATCH",
+          body: { categoryId }
+        })
+      );
+      return Promise.all(updatePromises);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      setSelectedExpenses([]);
+      setIsSelectionMode(false);
+      const category = categories.find(c => c.id === variables.categoryId);
+      toast({
+        title: "Success",
+        description: `${variables.ids.length} expenses updated to ${category?.name || 'selected category'}`,
+      });
+    },
+    onError: (error: any) => {
+      console.error("Bulk update error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update expenses",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter expenses with defensive checks
   const filteredExpenses = expenses.filter((expense: Expense & { category: Category; partner: Partner }) => {
     if (!expense || !expense.description) return false;
@@ -125,6 +157,10 @@ export default function ExpenseHistory() {
     if (confirm(`Are you sure you want to delete ${selectedExpenses.length} selected expenses?`)) {
       bulkDeleteMutation.mutate(selectedExpenses);
     }
+  };
+
+  const handleBulkCategoryUpdate = (categoryId: string) => {
+    bulkUpdateCategoryMutation.mutate({ ids: selectedExpenses, categoryId });
   };
 
   const handleSelectExpense = (expenseId: string) => {
@@ -236,21 +272,35 @@ export default function ExpenseHistory() {
             </div>
             
             {selectedExpenses.length > 0 && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleBulkDelete}
-                disabled={bulkDeleteMutation.isPending}
-                className="flex items-center space-x-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span>
-                  {bulkDeleteMutation.isPending 
-                    ? "Deleting..." 
-                    : `Delete ${selectedExpenses.length}`
-                  }
-                </span>
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Select onValueChange={handleBulkCategoryUpdate}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Change category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category: Category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.emoji} {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteMutation.isPending}
+                  className="flex items-center space-x-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>
+                    {bulkDeleteMutation.isPending 
+                      ? "Deleting..." 
+                      : `Delete ${selectedExpenses.length}`
+                    }
+                  </span>
+                </Button>
+              </div>
             )}
           </div>
         )}
