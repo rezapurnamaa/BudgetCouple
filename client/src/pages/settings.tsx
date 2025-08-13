@@ -166,7 +166,7 @@ function SettingsContent() {
     if (!editingCategory) return;
     updateCategoryBudgetMutation.mutate({
       id: editingCategory.id,
-      monthlyBudget: editingCategory.monthlyBudget,
+      monthlyBudget: parseFloat(editingCategory.monthlyBudget?.toString() || "0"),
     });
   };
 
@@ -240,7 +240,7 @@ function SettingsContent() {
                         <div>
                           <p className="font-medium">{category.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            Monthly Budget: €{(category.monthlyBudget || 0).toFixed(2)}
+                            Monthly Budget: €{(parseFloat(category.monthlyBudget?.toString() || "0")).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -267,10 +267,10 @@ function SettingsContent() {
                                 id="budget-amount"
                                 type="number"
                                 step="0.01"
-                                value={editingCategory?.monthlyBudget || 0}
+                                value={parseFloat(editingCategory?.monthlyBudget?.toString() || "0")}
                                 onChange={(e) =>
                                   setEditingCategory(prev =>
-                                    prev ? { ...prev, monthlyBudget: parseFloat(e.target.value) || 0 } : null
+                                    prev ? { ...prev, monthlyBudget: e.target.value } : null
                                   )
                                 }
                                 data-testid="input-budget-amount"
