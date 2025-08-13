@@ -80,8 +80,19 @@ export class StatementProcessor {
       return null;
     }
 
-    // Get AI categorization
-    const { categoryId, confidence } = await this.categorizeBusiness(description);
+    // Try fallback categorization first (faster, no API calls)
+    const fallbackResult = this.fallbackCategorization(description);
+    
+    let categoryId = fallbackResult.categoryId;
+    let confidence = fallbackResult.confidence;
+    
+    // Only use AI categorization if fallback confidence is low (< 0.6) or no match found
+    if (confidence < 0.6) {
+      console.log(`Low confidence (${confidence}) for "${description}", using AI categorization...`);
+      const aiResult = await this.categorizeBusiness(description);
+      categoryId = aiResult.categoryId;
+      confidence = aiResult.confidence;
+    }
 
     return {
       date,
@@ -285,29 +296,34 @@ export class StatementProcessor {
     const desc = description.toLowerCase();
     
     const patterns = [
-      { keywords: ['lidl', 'rewe', 'edeka', 'aldi', 'grocery', 'supermarket', 'market', 'food store', 'walmart', 'safeway', 'whole foods', 'netto', 'penny'], category: 'Groceries' },
-      { keywords: ['restaurant', 'cafe', 'pizza', 'delivery', 'uber eats', 'doordash', 'lieferando', 'mcdonalds', 'burger', 'kfc', 'subway', 'bistro'], category: 'Eating out' },
-      { keywords: ['movie', 'netflix', 'spotify', 'game', 'entertainment', 'cinema', 'theater', 'concert', 'amazon prime', 'disney'], category: 'Entertainment' },
-      { keywords: ['subscription', 'monthly', 'adobe', 'software', 'saas', 'service', 'membership'], category: 'Subscription' },
-      { keywords: ['bolt', 'uber', 'lyft', 'taxi', 'gas', 'fuel', 'parking', 'transit', 'transport', 'bvg', 'db bahn', 'train', 'bus'], category: 'Transport' },
-      { keywords: ['gift', 'present', 'flower', 'card', 'geschenk'], category: 'Gifts' },
-      { keywords: ['hotel', 'flight', 'travel', 'vacation', 'airbnb', 'booking', 'expedia', 'urlaub'], category: 'Vacation' },
-      { keywords: ['pharmacy', 'medicine', 'drug', 'vitamin', 'health', 'apotheke', 'dm', 'rossmann'], category: 'Supplement/medicine' },
-      { keywords: ['amazon', 'ebay', 'zalando', 'otto'], category: 'Entertainment' }, // General shopping
+      { keywords: ['lidl', 'rewe', 'edeka', 'aldi', 'grocery', 'supermarket', 'market', 'food store', 'walmart', 'safeway', 'whole foods', 'netto', 'penny'], category: 'Groceries', confidence: 0.85 },
+      { keywords: ['restaurant', 'cafe', 'pizza', 'delivery', 'uber eats', 'doordash', 'lieferando', 'mcdonalds', 'burger', 'kfc', 'subway', 'bistro'], category: 'Eating out', confidence: 0.85 },
+      { keywords: ['netflix', 'spotify', 'amazon prime', 'disney', 'cinema', 'theater', 'concert'], category: 'Entertainment', confidence: 0.9 },
+      { keywords: ['bolt', 'uber', 'lyft', 'taxi', 'bvg', 'db bahn'], category: 'Transport', confidence: 0.9 },
+      { keywords: ['apotheke', 'dm', 'rossmann', 'pharmacy'], category: 'Supplement/medicine', confidence: 0.85 },
+      { keywords: ['hotel', 'booking', 'expedia', 'airbnb', 'flight'], category: 'Vacation', confidence: 0.85 },
+      { keywords: ['subscription', 'adobe', 'microsoft', 'saas'], category: 'Subscription', confidence: 0.8 },
+      // Lower confidence patterns for broader matches
+      { keywords: ['movie', 'game', 'entertainment'], category: 'Entertainment', confidence: 0.6 },
+      { keywords: ['gas', 'fuel', 'parking', 'transit', 'transport', 'train', 'bus'], category: 'Transport', confidence: 0.6 },
+      { keywords: ['gift', 'present', 'flower', 'card', 'geschenk'], category: 'Gifts', confidence: 0.7 },
+      { keywords: ['amazon', 'ebay', 'zalando', 'otto'], category: 'Entertainment', confidence: 0.5 }, // General shopping - low confidence
+      { keywords: ['medicine', 'drug', 'vitamin', 'health'], category: 'Supplement/medicine', confidence: 0.6 },
     ];
 
+    // Check for high-confidence matches first
     for (const pattern of patterns) {
       for (const keyword of pattern.keywords) {
         if (desc.includes(keyword)) {
           const category = this.categories.find(cat => cat.name === pattern.category);
           if (category) {
-            return { categoryId: category.id, confidence: 0.7 };
+            return { categoryId: category.id, confidence: pattern.confidence };
           }
         }
       }
     }
 
-    // Default to Entertainment
+    // No match found - return default with low confidence to trigger AI categorization
     const defaultCategory = this.categories.find(cat => cat.name === 'Entertainment') || this.categories[0];
     return { 
       categoryId: defaultCategory?.id || '', 
