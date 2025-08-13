@@ -59,6 +59,10 @@ function SettingsContent() {
   const [newBudgetName, setNewBudgetName] = useState("");
   const [newBudgetStartDate, setNewBudgetStartDate] = useState("");
   const [newBudgetEndDate, setNewBudgetEndDate] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryEmoji, setNewCategoryEmoji] = useState("🏷️");
+  const [newCategoryColor, setNewCategoryColor] = useState("#3b82f6");
+  const [newCategoryBudget, setNewCategoryBudget] = useState("");
 
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -110,11 +114,17 @@ function SettingsContent() {
   // Category budget mutations
   const updateCategoryBudgetMutation = useMutation({
     mutationFn: async (data: { id: string; monthlyBudget: number }) =>
-      apiRequest(`/api/categories/${data.id}`, { method: "PATCH", body: data }),
+      apiRequest(`/api/categories/${data.id}`, { method: "PATCH", body: { monthlyBudget: data.monthlyBudget } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       setEditingCategory(null);
       toast({ description: "Budget updated successfully" });
+    },
+    onError: () => {
+      toast({ 
+        description: "Failed to update budget",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -167,6 +177,36 @@ function SettingsContent() {
     updateCategoryBudgetMutation.mutate({
       id: editingCategory.id,
       monthlyBudget: parseFloat(editingCategory.monthlyBudget?.toString() || "0"),
+    });
+  };
+
+  // Category mutations
+  const addCategoryMutation = useMutation({
+    mutationFn: async (data: { name: string; emoji: string; color: string; monthlyBudget: number }) =>
+      apiRequest("/api/categories", { method: "POST", body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      setNewCategoryName("");
+      setNewCategoryEmoji("🏷️");
+      setNewCategoryColor("#3b82f6");
+      setNewCategoryBudget("");
+      toast({ description: "Category added successfully" });
+    },
+    onError: () => {
+      toast({ 
+        description: "Failed to add category",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) return;
+    addCategoryMutation.mutate({
+      name: newCategoryName.trim(),
+      emoji: newCategoryEmoji,
+      color: newCategoryColor,
+      monthlyBudget: parseFloat(newCategoryBudget) || 0,
     });
   };
 
@@ -224,14 +264,89 @@ function SettingsContent() {
 
           {/* Budget Management Tab */}
           <TabsContent value="budgets">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <DollarSign className="h-5 w-5" />
-                  <span>Category Budgets</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="space-y-6">
+              {/* Add New Budget Category */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Plus className="h-5 w-5" />
+                    <span>Add New Category</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                      <Label htmlFor="category-name">Category Name</Label>
+                      <Input
+                        id="category-name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="Enter category name..."
+                        data-testid="input-category-name"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category-emoji">Emoji</Label>
+                      <Input
+                        id="category-emoji"
+                        value={newCategoryEmoji}
+                        onChange={(e) => setNewCategoryEmoji(e.target.value)}
+                        placeholder="🛒"
+                        maxLength={2}
+                        data-testid="input-category-emoji"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category-color">Color</Label>
+                      <div className="flex space-x-2 mt-2">
+                        {colorOptions.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => setNewCategoryColor(color)}
+                            className={`w-8 h-8 rounded-full border-2 ${
+                              newCategoryColor === color ? "border-primary" : "border-gray-300"
+                            }`}
+                            style={{ backgroundColor: color }}
+                            data-testid={`category-color-option-${color}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="category-budget">Monthly Budget (€)</Label>
+                      <Input
+                        id="category-budget"
+                        type="number"
+                        step="0.01"
+                        value={newCategoryBudget}
+                        onChange={(e) => setNewCategoryBudget(e.target.value)}
+                        placeholder="0.00"
+                        data-testid="input-category-budget"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <Button
+                        onClick={handleAddCategory}
+                        disabled={!newCategoryName.trim() || addCategoryMutation.isPending}
+                        data-testid="button-add-category"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Category
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Existing Categories */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <DollarSign className="h-5 w-5" />
+                    <span>Category Budgets</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="space-y-4">
                   {(categories as Category[]).map((category) => (
                     <div key={category.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -297,6 +412,7 @@ function SettingsContent() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Partners Tab */}

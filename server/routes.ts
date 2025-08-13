@@ -51,7 +51,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/categories/:id", async (req, res) => {
+  app.patch("/api/categories/:id", async (req, res) => {
     try {
       const result = insertCategorySchema.partial().safeParse(req.body);
       if (!result.success) {
