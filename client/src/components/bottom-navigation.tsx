@@ -9,7 +9,7 @@ export default function BottomNavigation() {
     { path: "/", icon: Home, label: "Home", id: "home" },
     { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
     { path: "#add", icon: Plus, label: "Add", isAction: true, id: "add" },
-    { path: "#history", icon: List, label: "History", id: "history" },
+    { path: "/history", icon: List, label: "History", id: "history" },
     { path: "#profile", icon: User, label: "Profile", id: "profile" },
   ];
 
