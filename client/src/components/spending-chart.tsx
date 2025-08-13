@@ -81,7 +81,7 @@ export default function SpendingChart() {
           }, 0);
 
         // Calculate proportional budget for the selected date range
-        const monthlyBudget = category.budget ? parseFloat(category.budget) : 0;
+        const monthlyBudget = category.monthlyBudget ? parseFloat(category.monthlyBudget) : 0;
         const budget = monthlyBudget * budgetMultiplier;
         const remaining = Math.max(0, budget - spent);
         const isOverBudget = spent > budget && budget > 0;

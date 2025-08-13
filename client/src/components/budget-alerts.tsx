@@ -36,7 +36,7 @@ export default function BudgetAlerts() {
       }, 0);
     
     // Calculate proportional budget for the selected date range
-    const monthlyBudget = parseFloat(category.budget || "0");
+    const monthlyBudget = parseFloat(category.monthlyBudget || "0");
     if (monthlyBudget <= 0) return null;
     const budget = monthlyBudget * budgetMultiplier;
     

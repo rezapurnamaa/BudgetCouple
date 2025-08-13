@@ -34,7 +34,7 @@ export default function CategoryBudgets() {
     }, 0);
     
     // Calculate proportional budget for the selected date range
-    const monthlyBudget = parseFloat(category.budget || "0");
+    const monthlyBudget = parseFloat(category.monthlyBudget || "0");
     const budget = isNaN(monthlyBudget) ? 0 : monthlyBudget * budgetMultiplier;
     const remaining = budget - spent;
     const percentage = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0;

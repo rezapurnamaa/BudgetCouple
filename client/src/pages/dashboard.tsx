@@ -57,8 +57,8 @@ function DashboardContent() {
 
   // Calculate proportional budget for the 30-day period
   const totalMonthlyBudget = categories.reduce((sum: number, category) => {
-    if (!category || !category.budget) return sum;
-    const budget = parseFloat(category.budget);
+    if (!category || !category.monthlyBudget) return sum;
+    const budget = parseFloat(category.monthlyBudget);
     return sum + (isNaN(budget) ? 0 : budget);
   }, 0);
 
