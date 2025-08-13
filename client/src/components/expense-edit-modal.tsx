@@ -44,13 +44,13 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
     mutationFn: async (data: any) => {
       return await apiRequest(`/api/expenses/${expense.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({
+        body: {
           amount: data.amount,
           description: data.description,
           categoryId: data.categoryId,
           partnerId: data.partnerId,
           date: data.date.toISOString(),
-        }),
+        },
       });
     },
     onSuccess: () => {
