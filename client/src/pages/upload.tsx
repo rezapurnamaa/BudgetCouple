@@ -1,19 +1,19 @@
+import Layout from "@/components/layout";
 import { StatementUploader } from "@/components/statement-uploader";
 import { BudgetPeriodManager } from "@/components/budget-period-manager";
+import { UploadHistory } from "@/components/upload-history";
 
 export default function Upload() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2" data-testid="text-page-title">
-          Upload & Budget Management
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400" data-testid="text-page-description">
-          Upload financial statements, verify expenses, and manage budgets within specific time ranges
-        </p>
+    <Layout 
+      title="Upload & Budget Management" 
+      description="Upload financial statements, verify expenses, and manage budgets within specific time ranges"
+    >
+      <div className="space-y-6">
+        <StatementUploader />
+        <BudgetPeriodManager />
+        <UploadHistory />
       </div>
-      
-      <StatementUploader />
-    </div>
+    </Layout>
   );
 }

@@ -5,6 +5,7 @@ import {
   partners,
   expenses,
   statements,
+  budgetPeriods,
   type Category,
   type InsertCategory,
   type Partner,
@@ -13,6 +14,8 @@ import {
   type InsertExpense,
   type Statement,
   type InsertStatement,
+  type BudgetPeriod,
+  type InsertBudgetPeriod,
 } from "@shared/schema";
 import type { IStorage } from "./storage";
 
@@ -197,5 +200,57 @@ export class DatabaseStorage implements IStorage {
       month,
       total: Number(total),
     }));
+  }
+
+  // New methods for expense verification and budget periods
+  async getExpensesByStatement(statementId: string): Promise<Expense[]> {
+    return await db
+      .select()
+      .from(expenses)
+      .where(eq(expenses.statementId, statementId));
+  }
+
+  async getBudgetPeriods(): Promise<BudgetPeriod[]> {
+    return await db
+      .select()
+      .from(budgetPeriods)
+      .orderBy(sql`${budgetPeriods.startDate} DESC`);
+  }
+
+  async createBudgetPeriod(insertBudgetPeriod: InsertBudgetPeriod): Promise<BudgetPeriod> {
+    const budgetPeriodData = {
+      ...insertBudgetPeriod,
+      startDate: new Date(insertBudgetPeriod.startDate),
+      endDate: new Date(insertBudgetPeriod.endDate),
+    };
+
+    const [budgetPeriod] = await db
+      .insert(budgetPeriods)
+      .values(budgetPeriodData)
+      .returning();
+    return budgetPeriod;
+  }
+
+  async updateBudgetPeriod(
+    id: string,
+    updateData: Partial<InsertBudgetPeriod>,
+  ): Promise<BudgetPeriod | undefined> {
+    const budgetPeriodData = {
+      ...updateData,
+      startDate: updateData.startDate ? new Date(updateData.startDate) : undefined,
+      endDate: updateData.endDate ? new Date(updateData.endDate) : undefined,
+    };
+
+    const [budgetPeriod] = await db
+      .update(budgetPeriods)
+      .set(budgetPeriodData)
+      .where(eq(budgetPeriods.id, id))
+      .returning();
+    return budgetPeriod;
+  }
+
+  async deleteBudgetPeriod(id: string): Promise<boolean> {
+    const result = await db.delete(budgetPeriods).where(eq(budgetPeriods.id, id));
+    return (result.rowCount || 0) > 0;
   }
 }

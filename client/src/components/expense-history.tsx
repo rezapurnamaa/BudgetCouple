@@ -10,6 +10,7 @@ import { Search, Edit, Trash2, CheckSquare, Square, ChevronLeft, ChevronRight } 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import { ExpenseEditModal } from "@/components/expense-edit-modal";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -22,6 +23,7 @@ export default function ExpenseHistory() {
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingExpense, setEditingExpense] = useState<any>(null);
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["/api/expenses"],
@@ -155,6 +157,7 @@ export default function ExpenseHistory() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -319,6 +322,14 @@ export default function ExpenseHistory() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              onClick={() => setEditingExpense(expense)}
+                              data-testid={`button-edit-expense-${expense.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() => handleDelete(expense.id)}
                               disabled={deleteExpenseMutation.isPending}
                             >
@@ -365,5 +376,14 @@ export default function ExpenseHistory() {
         )}
       </CardContent>
     </Card>
+    
+    {editingExpense && (
+      <ExpenseEditModal
+        expense={editingExpense}
+        isOpen={!!editingExpense}
+        onClose={() => setEditingExpense(null)}
+      />
+    )}
+  </>
   );
 }

@@ -89,6 +89,21 @@ export function StatementUploader() {
       return;
     }
 
+    // Check for duplicate uploads
+    const isDuplicate = statements.some(statement => 
+      statement.fileName === formData.file!.name && 
+      statement.status === 'completed'
+    );
+
+    if (isDuplicate) {
+      toast({
+        title: "Duplicate File",
+        description: "This file appears to have been uploaded already. Please check your upload history below.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const uploadFormData = new FormData();
     uploadFormData.append('file', formData.file);
     uploadFormData.append('source', formData.source);
