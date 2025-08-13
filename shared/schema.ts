@@ -26,6 +26,17 @@ export const expenses = pgTable("expenses", {
   date: timestamp("date").notNull().default(sql`now()`),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   statementId: varchar("statement_id"), // Optional - links to uploaded statement
+  isVerified: text("is_verified").default("pending"), // 'pending', 'verified', 'rejected'
+  originalAmount: text("original_amount"), // Store original amount string from statement
+});
+
+export const budgetPeriods = pgTable("budget_periods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  budgetAmount: decimal("budget_amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
 export const statements = pgTable("statements", {
@@ -56,6 +67,11 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
   date: z.string().optional(),
 });
 
+export const insertBudgetPeriodSchema = createInsertSchema(budgetPeriods).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertStatementSchema = createInsertSchema(statements).omit({
   id: true,
   uploadedAt: true,
@@ -71,3 +87,5 @@ export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;
 export type InsertStatement = z.infer<typeof insertStatementSchema>;
 export type Statement = typeof statements.$inferSelect;
+export type InsertBudgetPeriod = z.infer<typeof insertBudgetPeriodSchema>;
+export type BudgetPeriod = typeof budgetPeriods.$inferSelect;

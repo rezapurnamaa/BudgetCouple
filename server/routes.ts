@@ -5,7 +5,8 @@ import {
   insertExpenseSchema, 
   insertCategorySchema, 
   insertPartnerSchema,
-  insertStatementSchema 
+  insertStatementSchema,
+  insertBudgetPeriodSchema
 } from "@shared/schema";
 import multer from "multer";
 import { StatementProcessor } from "./statement-processor";
@@ -237,6 +238,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Expense verification routes
+  app.get("/api/expenses/statement/:statementId", async (req, res) => {
+    try {
+      const expenses = await storage.getExpensesByStatement(req.params.statementId);
+      res.json(expenses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statement expenses" });
+    }
+  });
+
+  app.patch("/api/expenses/:id", async (req, res) => {
+    try {
+      const result = insertExpenseSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid expense data", errors: result.error.errors });
+      }
+      
+      const expense = await storage.updateExpense(req.params.id, result.data);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      res.json(expense);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update expense" });
+    }
+  });
+
+  app.post("/api/expenses/:id/verify", async (req, res) => {
+    try {
+      const { action } = req.body;
+      if (!['verify', 'reject'].includes(action)) {
+        return res.status(400).json({ message: "Invalid action" });
+      }
+      
+      const expense = await storage.updateExpense(req.params.id, {
+        isVerified: action === 'verify' ? 'verified' : 'rejected'
+      });
+      
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      res.json(expense);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify expense" });
+    }
+  });
+
+  // Budget period routes
+  app.get("/api/budget-periods", async (req, res) => {
+    try {
+      const budgetPeriods = await storage.getBudgetPeriods();
+      res.json(budgetPeriods);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch budget periods" });
+    }
+  });
+
+  app.post("/api/budget-periods", async (req, res) => {
+    try {
+      const result = insertBudgetPeriodSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid budget period data", errors: result.error.errors });
+      }
+      
+      const budgetPeriod = await storage.createBudgetPeriod(result.data);
+      res.status(201).json(budgetPeriod);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create budget period" });
+    }
+  });
+
+  app.patch("/api/budget-periods/:id", async (req, res) => {
+    try {
+      const result = insertBudgetPeriodSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ message: "Invalid budget period data", errors: result.error.errors });
+      }
+      
+      const budgetPeriod = await storage.updateBudgetPeriod(req.params.id, result.data);
+      if (!budgetPeriod) {
+        return res.status(404).json({ message: "Budget period not found" });
+      }
+      
+      res.json(budgetPeriod);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update budget period" });
+    }
+  });
+
+  app.delete("/api/budget-periods/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteBudgetPeriod(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Budget period not found" });
+      }
+      
+      res.json({ message: "Budget period deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete budget period" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -293,6 +398,8 @@ async function processStatementAsync(
           partnerId: partnerId,
           date: transaction.date,
           statementId: statementId,
+          isVerified: 'pending',
+          originalAmount: transaction.originalAmount || transaction.amount.toString(),
         });
 
         processedCount++;

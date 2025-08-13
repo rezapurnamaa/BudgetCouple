@@ -7,6 +7,8 @@ import {
   type InsertExpense,
   type Statement,
   type InsertStatement,
+  type BudgetPeriod,
+  type InsertBudgetPeriod,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -28,6 +30,7 @@ export interface IStorage {
   getExpenses(): Promise<
     (Expense & { category: Category; partner: Partner })[]
   >;
+  getExpensesByStatement(statementId: string): Promise<Expense[]>;
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(
     id: string,
@@ -44,6 +47,15 @@ export interface IStorage {
   ): Promise<Statement | undefined>;
   getStatement(id: string): Promise<Statement | undefined>;
 
+  // Budget Periods
+  getBudgetPeriods(): Promise<BudgetPeriod[]>;
+  createBudgetPeriod(budgetPeriod: InsertBudgetPeriod): Promise<BudgetPeriod>;
+  updateBudgetPeriod(
+    id: string,
+    budgetPeriod: Partial<InsertBudgetPeriod>,
+  ): Promise<BudgetPeriod | undefined>;
+  deleteBudgetPeriod(id: string): Promise<boolean>;
+
   // Analytics
   getSpendingByCategory(): Promise<
     { categoryId: string; total: number; category: Category }[]
@@ -56,12 +68,14 @@ export class MemStorage implements IStorage {
   private partners: Map<string, Partner>;
   private expenses: Map<string, Expense>;
   private statements: Map<string, Statement>;
+  private budgetPeriods: Map<string, BudgetPeriod>;
 
   constructor() {
     this.categories = new Map();
     this.partners = new Map();
     this.expenses = new Map();
     this.statements = new Map();
+    this.budgetPeriods = new Map();
 
     // Initialize with default data
     this.initializeDefaultData();
@@ -478,6 +492,8 @@ export class MemStorage implements IStorage {
         date: expenseDate,
         createdAt: new Date(),
         statementId: null,
+        isVerified: 'verified',
+        originalAmount: null,
       };
 
       this.expenses.set(expense.id, expense);
@@ -657,6 +673,53 @@ export class MemStorage implements IStorage {
 
   async getStatement(id: string): Promise<Statement | undefined> {
     return this.statements.get(id);
+  }
+
+  // New methods for expense verification and budget periods
+  async getExpensesByStatement(statementId: string): Promise<Expense[]> {
+    return Array.from(this.expenses.values()).filter(
+      expense => expense.statementId === statementId
+    );
+  }
+
+  async getBudgetPeriods(): Promise<BudgetPeriod[]> {
+    return Array.from(this.budgetPeriods.values()).sort((a, b) => 
+      new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  }
+
+  async createBudgetPeriod(insertBudgetPeriod: InsertBudgetPeriod): Promise<BudgetPeriod> {
+    const id = randomUUID();
+    const budgetPeriod: BudgetPeriod = {
+      ...insertBudgetPeriod,
+      id,
+      startDate: new Date(insertBudgetPeriod.startDate),
+      endDate: new Date(insertBudgetPeriod.endDate),
+      createdAt: new Date(),
+    };
+    this.budgetPeriods.set(id, budgetPeriod);
+    return budgetPeriod;
+  }
+
+  async updateBudgetPeriod(
+    id: string,
+    updateData: Partial<InsertBudgetPeriod>,
+  ): Promise<BudgetPeriod | undefined> {
+    const budgetPeriod = this.budgetPeriods.get(id);
+    if (!budgetPeriod) return undefined;
+
+    const updated = {
+      ...budgetPeriod,
+      ...updateData,
+      startDate: updateData.startDate ? new Date(updateData.startDate) : budgetPeriod.startDate,
+      endDate: updateData.endDate ? new Date(updateData.endDate) : budgetPeriod.endDate,
+    };
+    this.budgetPeriods.set(id, updated);
+    return updated;
+  }
+
+  async deleteBudgetPeriod(id: string): Promise<boolean> {
+    return this.budgetPeriods.delete(id);
   }
 }
 

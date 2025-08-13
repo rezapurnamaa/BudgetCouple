@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { ExpenseVerification } from './expense-verification';
+import { BudgetPeriodManager } from './budget-period-manager';
 import type { Partner, Statement } from '@shared/schema';
 
 interface UploadFormData {
@@ -259,13 +261,20 @@ export function StatementUploader() {
               <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                 <p className="text-green-700 text-sm" data-testid="text-success-message">
                   <strong>Success!</strong> {uploadedStatement.processedTransactions} transactions have been added to your expenses. 
-                  You can now view them in your expense history.
+                  Please verify and edit the expenses below.
                 </p>
               </div>
             )}
           </CardContent>
         </Card>
       )}
+
+      {/* Expense Verification for completed uploads */}
+      {uploadedStatement && uploadedStatement.status === 'completed' && (
+        <ExpenseVerification statementId={uploadedStatement.id} />
+      )}
+
+
     </div>
   );
 }

@@ -9,6 +9,7 @@ export interface ParsedTransaction {
   description: string;
   suggestedCategoryId: string;
   confidence: number;
+  originalAmount?: string; // Store original amount string for verification
 }
 
 export class StatementProcessor {
@@ -52,23 +53,26 @@ export class StatementProcessor {
       return null;
     }
 
-    let date: string, amount: number, description: string;
+    let date: string, amount: number, description: string, originalAmount: string;
 
     // Different CSV formats for different sources
     if (source.toLowerCase().includes('amex')) {
       // AMEX format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+      originalAmount = fields[2] || '0';
       amount = Math.abs(parseFloat(fields[2]?.replace(/[$,]/g, '') || '0'));
     } else if (source.toLowerCase().includes('chase') || source.toLowerCase().includes('bank')) {
       // Chase/Bank format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+      originalAmount = fields[2] || '0';
       amount = Math.abs(parseFloat(fields[2]?.replace(/[$,]/g, '') || '0'));
     } else {
       // Generic format
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+      originalAmount = fields[2] || '0';
       amount = Math.abs(parseFloat(fields[2]?.replace(/[$,]/g, '') || '0'));
     }
 
@@ -84,7 +88,8 @@ export class StatementProcessor {
       amount,
       description: description.trim(),
       suggestedCategoryId: categoryId,
-      confidence
+      confidence,
+      originalAmount: originalAmount.trim()
     };
   }
 
