@@ -8,6 +8,7 @@ import SpendingChart from "@/components/spending-chart";
 import BottomNavigation from "@/components/bottom-navigation";
 import BudgetAlerts from "@/components/budget-alerts";
 import DesktopNavigation from "@/components/desktop-navigation";
+import DateRangePicker from "@/components/date-range-picker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
 import { subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
@@ -21,6 +22,7 @@ interface DashboardStats {
 
 function DashboardContent() {
   const isMobile = useIsMobile();
+  const { startDate, endDate } = useDateRange();
 
   const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
@@ -34,21 +36,17 @@ function DashboardContent() {
     queryKey: ["/api/partners"],
   });
 
-  // Calculate dashboard stats for current month (last 30 days) - matching spending chart logic
-  const now = new Date();
-  const thirtyDaysAgo = subDays(now, 30);
-  const startDate = startOfDay(thirtyDaysAgo);
-  const endDate = endOfDay(now);
+  // Calculate dashboard stats for selected date range
   const dayCount = differenceInDays(endDate, startDate) + 1;
   const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
 
-  const currentMonthExpenses = expenses.filter((expense) => {
+  const filteredExpenses = expenses.filter((expense) => {
     if (!expense?.date) return false;
     const expenseDate = new Date(expense.date);
-    return expenseDate >= startDate && expenseDate <= endDate;
+    return expenseDate >= startOfDay(startDate) && expenseDate <= endOfDay(endDate);
   });
 
-  const totalSpent = currentMonthExpenses.reduce(
+  const totalSpent = filteredExpenses.reduce(
     (sum: number, expense) => {
       if (!expense || !expense.amount) return sum;
       const amount = parseFloat(expense.amount);
@@ -66,7 +64,7 @@ function DashboardContent() {
 
   const totalBudget = totalMonthlyBudget * budgetMultiplier;
   const budgetRemaining = totalBudget - totalSpent;
-  const transactionCount = currentMonthExpenses.length;
+  const transactionCount = filteredExpenses.length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,6 +104,14 @@ function DashboardContent() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Date Range Picker */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h2 className="text-lg font-semibold text-foreground">Dashboard Overview</h2>
+            <DateRangePicker />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Dashboard Stats and Chart */}
           <div className="lg:col-span-2">
@@ -122,7 +128,7 @@ function DashboardContent() {
                         €{totalSpent.toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Last 30 days
+                        Selected period
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
@@ -166,7 +172,7 @@ function DashboardContent() {
                         {transactionCount}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Last 30 days
+                        Selected period
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
