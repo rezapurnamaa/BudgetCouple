@@ -184,8 +184,8 @@ function DashboardContent() {
             {/* Spending Chart */}
             <SpendingChart />
 
-            {/* Expense History - below spending chart on desktop, bottom on mobile */}
-            <div className="mt-6">
+            {/* Expense History - below spending chart on desktop only */}
+            <div className="mt-6 hidden lg:block">
               <ExpenseHistory />
             </div>
           </div>
@@ -195,6 +195,11 @@ function DashboardContent() {
             <CategoryBudgets />
             <BudgetAlerts />
           </div>
+        </div>
+
+        {/* Mobile Expense History - show at bottom on mobile */}
+        <div className="lg:hidden mb-8">
+          <ExpenseHistory />
         </div>
       </div>
 
