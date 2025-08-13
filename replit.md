@@ -37,6 +37,9 @@ Preferred communication style: Simple, everyday language.
   - Updated categories (August 2025): Groceries, Eating out, Entertainment, Subscription, Gifts, Potluck, Charity, Additional transport, Vacation, Emergency spending, Babysitting, Housekeeping, Supplement/medicine
 - **Partners**: User/partner management with color coding
 - **Expenses**: Transaction records with amount, description, category, partner, and date
+  - **Statement Processing**: Automated CSV upload with AI categorization and European format support
+  - **Amount Parsing**: European decimal format support (comma as decimal separator: "47,40" = €47.40)
+  - **Date Parsing**: European date format support (DD-MM-YYYY priority over MM-DD-YYYY)
 - **Relationships**: Foreign key relationships between expenses, categories, and partners
 
 ## Development Environment

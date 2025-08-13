@@ -148,30 +148,65 @@ export class StatementProcessor {
   }
 
   private parseDate(dateStr: string): string {
-    // Handle various date formats
+    // Handle various date formats, prioritizing European DD-MM-YYYY format
     const cleaned = dateStr.replace(/"/g, '').trim();
     
-    // Try different formats
+    // Try different formats in order of preference
     const formats = [
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // MM/dd/yyyy
-      /(\d{4})-(\d{1,2})-(\d{1,2})/,    // yyyy-MM-dd
-      /(\d{1,2})-(\d{1,2})-(\d{4})/,    // MM-dd-yyyy
+      { 
+        pattern: /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // DD/MM/yyyy or MM/dd/yyyy
+        handler: (match: RegExpMatchArray) => {
+          const [, part1, part2, part3] = match;
+          // Assume European format (DD/MM/yyyy) by default
+          // If day > 12, swap to MM/dd format
+          const day = parseInt(part1);
+          const month = parseInt(part2);
+          
+          if (day > 12 && month <= 12) {
+            // Must be MM/dd/yyyy (US format)
+            return new Date(parseInt(part3), month - 1, day);
+          } else {
+            // Assume DD/MM/yyyy (European format)
+            return new Date(parseInt(part3), month - 1, day);
+          }
+        }
+      },
+      { 
+        pattern: /(\d{1,2})-(\d{1,2})-(\d{4})/,    // DD-MM-yyyy or MM-dd-yyyy
+        handler: (match: RegExpMatchArray) => {
+          const [, part1, part2, part3] = match;
+          // Assume European format (DD-MM-yyyy) by default
+          const day = parseInt(part1);
+          const month = parseInt(part2);
+          
+          if (day > 12 && month <= 12) {
+            // Must be MM-dd-yyyy (US format)
+            return new Date(parseInt(part3), month - 1, day);
+          } else {
+            // Assume DD-MM-yyyy (European format)
+            return new Date(parseInt(part3), month - 1, day);
+          }
+        }
+      },
+      { 
+        pattern: /(\d{4})-(\d{1,2})-(\d{1,2})/,    // yyyy-MM-dd (ISO format)
+        handler: (match: RegExpMatchArray) => {
+          const [, year, month, day] = match;
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+      }
     ];
 
     for (const format of formats) {
-      const match = cleaned.match(format);
+      const match = cleaned.match(format.pattern);
       if (match) {
-        const [, part1, part2, part3] = match;
-        
-        // Determine if it's MM/dd/yyyy or yyyy-MM-dd
-        if (part3.length === 4) {
-          // MM/dd/yyyy format
-          const date = new Date(parseInt(part3), parseInt(part1) - 1, parseInt(part2));
-          return date.toISOString();
-        } else if (part1.length === 4) {
-          // yyyy-MM-dd format
-          const date = new Date(parseInt(part1), parseInt(part2) - 1, parseInt(part3));
-          return date.toISOString();
+        try {
+          const date = format.handler(match);
+          if (!isNaN(date.getTime())) {
+            return date.toISOString();
+          }
+        } catch (error) {
+          continue;
         }
       }
     }
