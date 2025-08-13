@@ -23,6 +23,8 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDateRange } from "@/contexts/date-range-context";
+import type { Expense, Category } from "@shared/schema";
+import type { DateRange } from "react-day-picker";
 
 interface SpendingData {
   name: string;
@@ -48,11 +50,11 @@ export default function SpendingChart() {
     budgetMultiplier
   } = useDateRange();
   
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
@@ -60,19 +62,19 @@ export default function SpendingChart() {
 
   // Filter expenses by date range and calculate spending data with proportional budgets
   const { chartData, totalSpent, totalBudget, filteredExpenses } = useMemo(() => {
-    const filteredExpenses = expenses.filter((expense: any) => {
+    const filteredExpenses = expenses.filter((expense) => {
       if (!expense?.date) return false;
       const expenseDate = new Date(expense.date);
       return expenseDate >= startDate && expenseDate <= endDate;
     });
 
     const spendingData: SpendingData[] = categories
-      .map((category: any) => {
+      .map((category) => {
         if (!category) return null;
 
         const spent = filteredExpenses
-          .filter((expense: any) => expense?.categoryId === category.id)
-          .reduce((sum: number, expense: any) => {
+          .filter((expense) => expense?.categoryId === category.id)
+          .reduce((sum: number, expense) => {
             if (!expense?.amount) return sum;
             const amount = parseFloat(expense.amount);
             return sum + (isNaN(amount) ? 0 : amount);
