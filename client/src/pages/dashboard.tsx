@@ -118,7 +118,7 @@ function DashboardContent() {
                         Total Spent
                       </p>
                       <p className="text-2xl font-bold text-foreground">
-                        ${totalSpent.toFixed(2)}
+                        €{totalSpent.toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         Last 30 days
@@ -141,7 +141,7 @@ function DashboardContent() {
                       <p
                         className={`text-2xl font-bold ${budgetRemaining >= 0 ? "text-green-600" : "text-red-600"}`}
                       >
-                        ${Math.abs(budgetRemaining).toFixed(2)}
+                        €{Math.abs(budgetRemaining).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {budgetRemaining >= 0 ? "Remaining" : "Over budget"}

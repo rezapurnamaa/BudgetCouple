@@ -158,7 +158,7 @@ function HistoryContent() {
                 <DollarSign className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Total Spent</p>
-                  <p className="text-xl font-semibold">${totalAmount.toFixed(2)}</p>
+                  <p className="text-xl font-semibold">€{totalAmount.toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -335,7 +335,7 @@ function HistoryContent() {
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-semibold text-foreground">
-                            ${parseFloat(expense.amount || "0").toFixed(2)}
+                            €{parseFloat(expense.amount || "0").toFixed(2)}
                           </p>
                         </div>
                       </div>

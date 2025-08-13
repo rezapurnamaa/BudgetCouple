@@ -50,7 +50,7 @@ export default function BudgetAlerts() {
     if (percentage >= 100) {
       alertType = 'danger';
       icon = AlertTriangle;
-      message = `Over budget by $${Math.abs(remaining).toFixed(2)}`;
+      message = `Over budget by €${Math.abs(remaining).toFixed(2)}`;
     } else if (percentage >= 80) {
       alertType = 'warning';
       icon = TrendingUp;
@@ -136,7 +136,7 @@ export default function BudgetAlerts() {
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-sm">{alert.category.name}</span>
                     <span className="text-sm font-medium">
-                      ${alert.spent.toFixed(2)} / ${alert.budget.toFixed(2)}
+                      €{alert.spent.toFixed(2)} / €{alert.budget.toFixed(2)}
                     </span>
                   </div>
                   <AlertDescription className="text-xs">

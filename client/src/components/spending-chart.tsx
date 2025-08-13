@@ -116,12 +116,12 @@ export default function SpendingChart() {
             {data.emoji} {data.name}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Spent: ${data.value.toFixed(2)}
+            Spent: €{data.value.toFixed(2)}
           </p>
           {data.budget > 0 && (
             <>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Budget: ${data.budget.toFixed(2)}
+                Budget: €{data.budget.toFixed(2)}
               </p>
               <p className={`text-sm font-medium ${
                 data.isOverBudget 
@@ -129,8 +129,8 @@ export default function SpendingChart() {
                   : 'text-green-600 dark:text-green-400'
               }`}>
                 {data.isOverBudget 
-                  ? `Over by $${(data.value - data.budget).toFixed(2)}` 
-                  : `${data.remaining.toFixed(2)} remaining`
+                  ? `Over by €${(data.value - data.budget).toFixed(2)}` 
+                  : `€${data.remaining.toFixed(2)} remaining`
                 }
               </p>
             </>
@@ -224,14 +224,14 @@ export default function SpendingChart() {
               {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')} ({dayCount} days)
             </span>
             <span className="font-medium text-gray-900 dark:text-gray-100">
-              Budget: ${totalBudget.toFixed(2)} ({(dayCount / 30).toFixed(2)}x monthly)
+              Budget: €{totalBudget.toFixed(2)} ({(dayCount / 30).toFixed(2)}x monthly)
             </span>
           </div>
           
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center space-x-4">
               <span className="text-gray-900 dark:text-gray-100 font-semibold">
-                Total Spent: ${totalSpent.toFixed(2)}
+                Total Spent: €{totalSpent.toFixed(2)}
               </span>
             </div>
             <div className={`font-semibold ${
@@ -240,8 +240,8 @@ export default function SpendingChart() {
                 : 'text-red-600 dark:text-red-400'
             }`}>
               {budgetRemaining >= 0 
-                ? `${budgetRemaining.toFixed(2)} remaining` 
-                : `${overBudgetAmount.toFixed(2)} over budget`
+                ? `€${budgetRemaining.toFixed(2)} remaining` 
+                : `€${overBudgetAmount.toFixed(2)} over budget`
               }
             </div>
           </div>

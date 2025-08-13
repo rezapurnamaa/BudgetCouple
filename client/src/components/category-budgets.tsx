@@ -66,18 +66,18 @@ export default function CategoryBudgets() {
                   <div>
                     <p className="font-medium text-foreground">{category.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      ${category.spent.toFixed(2)} / ${category.budget.toFixed(2)}
+                      €{category.spent.toFixed(2)} / €{category.budget.toFixed(2)}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   {category.isOverBudget ? (
                     <p className="text-sm font-medium text-red-600">
-                      ${Math.abs(category.remaining).toFixed(2)} over
+                      €{Math.abs(category.remaining).toFixed(2)} over
                     </p>
                   ) : (
                     <p className="text-sm font-medium text-green-600">
-                      ${category.remaining.toFixed(2)} left
+                      €{category.remaining.toFixed(2)} left
                     </p>
                   )}
                 </div>

@@ -311,7 +311,7 @@ export default function ExpenseHistory() {
                       <div className="text-right flex items-center space-x-2">
                         <div>
                           <p className="font-semibold text-foreground">
-                            ${expense.amount ? parseFloat(expense.amount).toFixed(2) : '0.00'}
+                            €{expense.amount ? parseFloat(expense.amount).toFixed(2) : '0.00'}
                           </p>
                         </div>
                         {!isSelectionMode && (

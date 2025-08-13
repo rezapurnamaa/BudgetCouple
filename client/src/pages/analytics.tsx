@@ -271,7 +271,7 @@ function AnalyticsContent() {
                       />
                       <Tooltip 
                         formatter={(value: number, name: string, props: any) => [
-                          `$${value.toFixed(2)}`, 
+                          `€${value.toFixed(2)}`, 
                           'Total Spent'
                         ]}
                         labelFormatter={(label) => `Month: ${label}`}
@@ -329,7 +329,7 @@ function AnalyticsContent() {
                         formatter={(value: number, name: string, props: any) => {
                           const isSpent = name === 'spent';
                           const category = categoryComparison.find(c => c.name === props.payload?.name);
-                          if (!category) return [`$${value.toFixed(2)}`, name];
+                          if (!category) return [`€${value.toFixed(2)}`, name];
                           
                           const isOverBudget = category.spent > category.budget && category.budget > 0;
                           const isEqualBudget = category.spent === category.budget && category.budget > 0;
@@ -337,16 +337,16 @@ function AnalyticsContent() {
                           if (isSpent) {
                             if (isOverBudget) {
                               const overAmount = category.spent - category.budget;
-                              return [`$${value.toFixed(2)}`, `Spent (Over by $${overAmount.toFixed(2)}!)`];
+                              return [`€${value.toFixed(2)}`, `Spent (Over by €${overAmount.toFixed(2)}!)`];
                             } else if (isEqualBudget) {
-                              return [`$${value.toFixed(2)}`, 'Spent (0% budget remaining)'];
+                              return [`€${value.toFixed(2)}`, 'Spent (0% budget remaining)'];
                             } else {
                               const remaining = category.budget - category.spent;
                               const remainingPercent = category.budget > 0 ? ((remaining / category.budget) * 100).toFixed(0) : '0';
-                              return [`$${value.toFixed(2)}`, `Spent (${remainingPercent}% budget remaining)`];
+                              return [`€${value.toFixed(2)}`, `Spent (${remainingPercent}% budget remaining)`];
                             }
                           }
-                          return [`$${value.toFixed(2)}`, 'Budget'];
+                          return [`€${value.toFixed(2)}`, 'Budget'];
                         }}
                         labelStyle={{ color: '#374151' }}
                         contentStyle={{ 

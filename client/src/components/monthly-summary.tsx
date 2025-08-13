@@ -102,7 +102,7 @@ export default function MonthlySummary() {
         {/* Monthly Total */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Total Spent</p>
-          <p className="text-3xl font-bold text-foreground">${monthlyTotal.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-foreground">€{monthlyTotal.toFixed(2)}</p>
           <p className="text-sm text-muted-foreground">{monthlyExpenses.length} transactions</p>
         </div>
 
@@ -120,7 +120,7 @@ export default function MonthlySummary() {
                   <span className="text-sm">{partner.name}</span>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium">${total.toFixed(2)}</p>
+                  <p className="font-medium">€{total.toFixed(2)}</p>
                   <p className="text-xs text-muted-foreground">
                     {monthlyTotal > 0 ? ((total / monthlyTotal) * 100).toFixed(1) : 0}%
                   </p>
@@ -144,7 +144,7 @@ export default function MonthlySummary() {
                     <span className="text-sm">{category.name}</span>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">${total.toFixed(2)}</p>
+                    <p className="font-medium">€{total.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">{count} transactions</p>
                   </div>
                 </div>
