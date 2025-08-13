@@ -61,19 +61,19 @@ export class StatementProcessor {
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(parseFloat(fields[2]?.replace(/[$,]/g, '') || '0'));
+      amount = Math.abs(this.parseAmount(fields[2] || '0'));
     } else if (source.toLowerCase().includes('chase') || source.toLowerCase().includes('bank')) {
       // Chase/Bank format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(parseFloat(fields[2]?.replace(/[$,]/g, '') || '0'));
+      amount = Math.abs(this.parseAmount(fields[2] || '0'));
     } else {
       // Generic format
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(parseFloat(fields[2]?.replace(/[$,]/g, '') || '0'));
+      amount = Math.abs(this.parseAmount(fields[2] || '0'));
     }
 
     if (amount === 0 || !description) {
@@ -113,6 +113,38 @@ export class StatementProcessor {
     
     fields.push(current.trim());
     return fields;
+  }
+
+  private parseAmount(amountStr: string): number {
+    if (!amountStr) return 0;
+    
+    // Remove quotes and currency symbols
+    let cleaned = amountStr.replace(/["\$€£]/g, '').trim();
+    
+    // Handle European format (comma as decimal separator)
+    // Examples: "47,40", "1.234,56", "1234,56"
+    const europeanPattern = /^(\d{1,3}(?:\.\d{3})*),(\d{1,2})$/;
+    const europeanMatch = cleaned.match(europeanPattern);
+    
+    if (europeanMatch) {
+      // European format: convert "1.234,56" to "1234.56"
+      const [, integerPart, decimalPart] = europeanMatch;
+      cleaned = integerPart.replace(/\./g, '') + '.' + decimalPart;
+    } else if (cleaned.includes(',') && !cleaned.includes('.')) {
+      // Simple European format: "47,40" -> "47.40"
+      const simpleEuropeanPattern = /^(\d+),(\d{1,2})$/;
+      const simpleMatch = cleaned.match(simpleEuropeanPattern);
+      if (simpleMatch) {
+        const [, integerPart, decimalPart] = simpleMatch;
+        cleaned = integerPart + '.' + decimalPart;
+      }
+    } else {
+      // US format: remove commas (thousand separators)
+      cleaned = cleaned.replace(/,/g, '');
+    }
+    
+    const result = parseFloat(cleaned);
+    return isNaN(result) ? 0 : result;
   }
 
   private parseDate(dateStr: string): string {
@@ -218,14 +250,15 @@ export class StatementProcessor {
     const desc = description.toLowerCase();
     
     const patterns = [
-      { keywords: ['grocery', 'supermarket', 'market', 'food', 'walmart', 'safeway', 'whole foods'], category: 'Groceries' },
-      { keywords: ['restaurant', 'cafe', 'pizza', 'delivery', 'uber eats', 'doordash'], category: 'Eating out' },
-      { keywords: ['movie', 'netflix', 'spotify', 'game', 'entertainment'], category: 'Entertainment' },
-      { keywords: ['subscription', 'monthly', 'adobe', 'software'], category: 'Subscription' },
-      { keywords: ['gas', 'fuel', 'uber', 'lyft', 'parking', 'transit'], category: 'Transport' },
-      { keywords: ['gift', 'present', 'flower', 'card'], category: 'Gifts' },
-      { keywords: ['hotel', 'flight', 'travel', 'vacation', 'airbnb'], category: 'Vacation' },
-      { keywords: ['pharmacy', 'medicine', 'drug', 'vitamin', 'health'], category: 'Supplement/medicine' },
+      { keywords: ['lidl', 'rewe', 'edeka', 'aldi', 'grocery', 'supermarket', 'market', 'food store', 'walmart', 'safeway', 'whole foods', 'netto', 'penny'], category: 'Groceries' },
+      { keywords: ['restaurant', 'cafe', 'pizza', 'delivery', 'uber eats', 'doordash', 'lieferando', 'mcdonalds', 'burger', 'kfc', 'subway', 'bistro'], category: 'Eating out' },
+      { keywords: ['movie', 'netflix', 'spotify', 'game', 'entertainment', 'cinema', 'theater', 'concert', 'amazon prime', 'disney'], category: 'Entertainment' },
+      { keywords: ['subscription', 'monthly', 'adobe', 'software', 'saas', 'service', 'membership'], category: 'Subscription' },
+      { keywords: ['bolt', 'uber', 'lyft', 'taxi', 'gas', 'fuel', 'parking', 'transit', 'transport', 'bvg', 'db bahn', 'train', 'bus'], category: 'Transport' },
+      { keywords: ['gift', 'present', 'flower', 'card', 'geschenk'], category: 'Gifts' },
+      { keywords: ['hotel', 'flight', 'travel', 'vacation', 'airbnb', 'booking', 'expedia', 'urlaub'], category: 'Vacation' },
+      { keywords: ['pharmacy', 'medicine', 'drug', 'vitamin', 'health', 'apotheke', 'dm', 'rossmann'], category: 'Supplement/medicine' },
+      { keywords: ['amazon', 'ebay', 'zalando', 'otto'], category: 'Entertainment' }, // General shopping
     ];
 
     for (const pattern of patterns) {
