@@ -1,4 +1,4 @@
-import { Home, BarChart3, Plus, History } from "lucide-react";
+import { Home, BarChart3, Plus, History, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
@@ -9,6 +9,7 @@ export default function DesktopNavigation() {
     { path: "/", icon: Home, label: "Dashboard" },
     { path: "/analytics", icon: BarChart3, label: "Analytics" },
     { path: "/history", icon: History, label: "History" },
+    { path: "/upload", icon: Upload, label: "Upload" },
   ];
 
   const scrollToQuickAdd = () => {

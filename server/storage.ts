@@ -5,6 +5,8 @@ import {
   type InsertPartner,
   type Expense,
   type InsertExpense,
+  type Statement,
+  type InsertStatement,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -33,6 +35,15 @@ export interface IStorage {
   ): Promise<Expense | undefined>;
   deleteExpense(id: string): Promise<boolean>;
 
+  // Statements
+  getStatements(): Promise<Statement[]>;
+  createStatement(statement: InsertStatement): Promise<Statement>;
+  updateStatement(
+    id: string,
+    statement: Partial<InsertStatement>,
+  ): Promise<Statement | undefined>;
+  getStatement(id: string): Promise<Statement | undefined>;
+
   // Analytics
   getSpendingByCategory(): Promise<
     { categoryId: string; total: number; category: Category }[]
@@ -44,11 +55,13 @@ export class MemStorage implements IStorage {
   private categories: Map<string, Category>;
   private partners: Map<string, Partner>;
   private expenses: Map<string, Expense>;
+  private statements: Map<string, Statement>;
 
   constructor() {
     this.categories = new Map();
     this.partners = new Map();
     this.expenses = new Map();
+    this.statements = new Map();
 
     // Initialize with default data
     this.initializeDefaultData();
@@ -462,7 +475,9 @@ export class MemStorage implements IStorage {
         description: mockExpense.description,
         categoryId: categoryIds[mockExpense.categoryIndex] || categoryIds[0],
         partnerId: partnerIds[mockExpense.partnerIndex] || partnerIds[0],
-        date: expenseDate.toISOString(),
+        date: expenseDate,
+        createdAt: new Date(),
+        statementId: null,
       };
 
       this.expenses.set(expense.id, expense);
@@ -610,6 +625,42 @@ export class MemStorage implements IStorage {
       .map(([month, total]) => ({ month, total }))
       .sort((a, b) => a.month.localeCompare(b.month));
   }
+
+  // Statements
+  async getStatements(): Promise<Statement[]> {
+    return Array.from(this.statements.values());
+  }
+
+  async createStatement(insertStatement: InsertStatement): Promise<Statement> {
+    const id = randomUUID();
+    const statement: Statement = {
+      ...insertStatement,
+      id,
+      uploadedAt: new Date(),
+      processedAt: null,
+    };
+    this.statements.set(id, statement);
+    return statement;
+  }
+
+  async updateStatement(
+    id: string,
+    updateData: Partial<InsertStatement>,
+  ): Promise<Statement | undefined> {
+    const statement = this.statements.get(id);
+    if (!statement) return undefined;
+
+    const updated = { ...statement, ...updateData };
+    this.statements.set(id, updated);
+    return updated;
+  }
+
+  async getStatement(id: string): Promise<Statement | undefined> {
+    return this.statements.get(id);
+  }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./database-storage";
+
+// Use DatabaseStorage for persistent data
+export const storage = new DatabaseStorage();

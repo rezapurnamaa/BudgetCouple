@@ -1,4 +1,4 @@
-import { Home, BarChart3, Plus, List, User } from "lucide-react";
+import { Home, BarChart3, Plus, List, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
@@ -10,7 +10,7 @@ export default function BottomNavigation() {
     { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
     { path: "#add", icon: Plus, label: "Add", isAction: true, id: "add" },
     { path: "/history", icon: List, label: "History", id: "history" },
-    { path: "#profile", icon: User, label: "Profile", id: "profile" },
+    { path: "/upload", icon: Upload, label: "Upload", id: "upload" },
   ];
 
   const scrollToQuickAdd = () => {

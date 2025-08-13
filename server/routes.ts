@@ -1,7 +1,29 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertExpenseSchema, insertCategorySchema, insertPartnerSchema } from "@shared/schema";
+import { 
+  insertExpenseSchema, 
+  insertCategorySchema, 
+  insertPartnerSchema,
+  insertStatementSchema 
+} from "@shared/schema";
+import multer from "multer";
+import { StatementProcessor } from "./statement-processor";
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['text/csv', 'application/csv', 'text/plain'];
+    if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Categories
@@ -138,6 +160,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Statements
+  app.get("/api/statements", async (req, res) => {
+    try {
+      const statements = await storage.getStatements();
+      res.json(statements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statements" });
+    }
+  });
+
+  app.post("/api/statements/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { source, defaultPartnerId } = req.body;
+      
+      if (!source) {
+        return res.status(400).json({ message: "Source is required (e.g., 'amex', 'chase', 'bank')" });
+      }
+
+      // Create statement record
+      const statement = await storage.createStatement({
+        fileName: req.file.originalname,
+        fileType: 'csv',
+        source: source.toLowerCase(),
+        status: 'processing',
+        totalTransactions: 0,
+        processedTransactions: 0,
+        errorMessage: null,
+      });
+
+      // Process the file asynchronously
+      processStatementAsync(req.file.buffer.toString('utf8'), statement.id, source, defaultPartnerId);
+
+      res.status(201).json({
+        message: 'Statement uploaded successfully. Processing started.',
+        statementId: statement.id
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ message: "Failed to upload statement" });
+    }
+  });
+
+  app.get("/api/statements/:id", async (req, res) => {
+    try {
+      const statement = await storage.getStatement(req.params.id);
+      if (!statement) {
+        return res.status(404).json({ message: "Statement not found" });
+      }
+      res.json(statement);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statement" });
+    }
+  });
+
   // Analytics
   app.get("/api/analytics/spending-by-category", async (req, res) => {
     try {
@@ -159,4 +239,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Async function to process uploaded statements
+async function processStatementAsync(
+  csvContent: string, 
+  statementId: string, 
+  source: string, 
+  defaultPartnerId?: string
+) {
+  try {
+    console.log(`Processing statement ${statementId} from ${source}`);
+    
+    // Update status to processing
+    await storage.updateStatement(statementId, { status: 'processing' });
+
+    // Get categories and partners for processing
+    const categories = await storage.getCategories();
+    const partners = await storage.getPartners();
+    
+    if (categories.length === 0) {
+      throw new Error('No categories found. Please add categories first.');
+    }
+
+    const processor = new StatementProcessor(categories);
+    const transactions = await processor.parseCSVStatement(csvContent, source);
+
+    console.log(`Parsed ${transactions.length} transactions`);
+
+    // Update total transactions
+    await storage.updateStatement(statementId, { 
+      totalTransactions: transactions.length 
+    });
+
+    let processedCount = 0;
+    const errors: string[] = [];
+
+    // Process each transaction
+    for (const transaction of transactions) {
+      try {
+        // Use provided default partner or first available partner
+        const partnerId = defaultPartnerId || partners[0]?.id;
+        
+        if (!partnerId) {
+          errors.push(`No partner available for transaction: ${transaction.description}`);
+          continue;
+        }
+
+        await storage.createExpense({
+          amount: transaction.amount.toString(),
+          description: transaction.description,
+          categoryId: transaction.suggestedCategoryId,
+          partnerId: partnerId,
+          date: transaction.date,
+          statementId: statementId,
+        });
+
+        processedCount++;
+
+        // Update progress every 10 transactions
+        if (processedCount % 10 === 0) {
+          await storage.updateStatement(statementId, {
+            processedTransactions: processedCount,
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to create expense:`, error);
+        errors.push(`Failed to process: ${transaction.description}`);
+      }
+    }
+
+    // Update final status
+    const status = errors.length > 0 ? 'completed' : 'completed';
+    const errorMessage = errors.length > 0 ? `${errors.length} errors occurred` : null;
+
+    await storage.updateStatement(statementId, {
+      status,
+      processedTransactions: processedCount,
+      processedAt: new Date(),
+      errorMessage,
+    });
+
+    console.log(`Completed processing statement ${statementId}: ${processedCount}/${transactions.length} transactions processed`);
+  } catch (error) {
+    console.error(`Failed to process statement ${statementId}:`, error);
+    await storage.updateStatement(statementId, {
+      status: 'failed',
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      processedAt: new Date(),
+    });
+  }
 }

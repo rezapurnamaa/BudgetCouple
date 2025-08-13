@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import Analytics from "@/pages/analytics";
 import History from "@/pages/history";
+import Upload from "@/pages/upload";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/history" component={History} />
+      <Route path="/upload" component={Upload} />
       <Route component={NotFound} />
     </Switch>
   );
