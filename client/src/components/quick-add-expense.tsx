@@ -72,7 +72,10 @@ export default function QuickAddExpense() {
         ...data,
         amount: parseFloat(normalizedAmount).toFixed(2),
       };
-      return apiRequest("POST", "/api/expenses", expenseData);
+      return apiRequest("/api/expenses", {
+        method: "POST",
+        body: expenseData,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });

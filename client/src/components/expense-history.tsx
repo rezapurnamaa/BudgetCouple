@@ -37,7 +37,9 @@ export default function ExpenseHistory() {
 
   const deleteExpenseMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/expenses/${id}`);
+      return apiRequest(`/api/expenses/${id}`, {
+        method: "DELETE",
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
@@ -60,7 +62,9 @@ export default function ExpenseHistory() {
     mutationFn: async (ids: string[]) => {
       // Delete all expenses in parallel
       const deletePromises = ids.map(id => 
-        apiRequest("DELETE", `/api/expenses/${id}`)
+        apiRequest(`/api/expenses/${id}`, {
+          method: "DELETE",
+        })
       );
       return Promise.all(deletePromises);
     },

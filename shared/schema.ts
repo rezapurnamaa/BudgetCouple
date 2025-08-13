@@ -59,7 +59,8 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
 export const insertStatementSchema = createInsertSchema(statements).omit({
   id: true,
   uploadedAt: true,
-  processedAt: true,
+}).extend({
+  processedAt: z.date().nullable().optional(),
 });
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
