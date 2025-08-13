@@ -23,8 +23,10 @@ import {
   ArrowUpDown,
   ChevronDown,
   Download,
-  Eye
+  Eye,
+  Settings
 } from "lucide-react";
+import DateRangePicker from "@/components/date-range-picker";
 import { format, parseISO, isValid } from "date-fns";
 
 function HistoryContent() {
@@ -178,14 +180,17 @@ function HistoryContent() {
           
           <Card>
             <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <CalendarIcon className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Date Range</p>
-                  <p className="text-sm font-medium">
-                    {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <CalendarIcon className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Date Range</p>
+                    <p className="text-sm font-medium">
+                      {format(startDate, 'MMM d')} - {format(endDate, 'MMM d, yyyy')}
+                    </p>
+                  </div>
                 </div>
+                <Settings className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -199,9 +204,12 @@ function HistoryContent() {
                 <Filter className="h-5 w-5" />
                 <span>Filters & Search</span>
               </span>
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear All
-              </Button>
+              <div className="flex items-center space-x-2">
+                <DateRangePicker />
+                <Button variant="outline" size="sm" onClick={clearFilters} data-testid="button-clear-filters">
+                  Clear All
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -214,12 +222,13 @@ function HistoryContent() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
+                  data-testid="input-search"
                 />
               </div>
 
               {/* Category Filter */}
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="select-category-filter">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -234,7 +243,7 @@ function HistoryContent() {
 
               {/* Partner Filter */}
               <Select value={selectedPartner} onValueChange={setSelectedPartner}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="select-partner-filter">
                   <SelectValue placeholder="All Partners" />
                 </SelectTrigger>
                 <SelectContent>
@@ -250,7 +259,7 @@ function HistoryContent() {
               {/* Sort */}
               <div className="flex space-x-2">
                 <Select value={sortBy} onValueChange={(value: "date" | "amount" | "category") => setSortBy(value)}>
-                  <SelectTrigger className="flex-1">
+                  <SelectTrigger className="flex-1" data-testid="select-sort-by">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -264,6 +273,7 @@ function HistoryContent() {
                   size="sm"
                   onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
                   className="px-3"
+                  data-testid="button-sort-order"
                 >
                   <ArrowUpDown className="h-4 w-4" />
                 </Button>
