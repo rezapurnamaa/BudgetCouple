@@ -55,6 +55,8 @@ export const statements = pgTable("statements", {
 
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
+}).extend({
+  monthlyBudget: z.string().optional(),
 });
 
 export const insertPartnerSchema = createInsertSchema(partners).omit({

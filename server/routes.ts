@@ -53,8 +53,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/categories/:id", async (req, res) => {
     try {
-      const result = insertCategorySchema.partial().safeParse(req.body);
+      console.log("PATCH /api/categories/:id body:", req.body);
+      
+      // Convert monthlyBudget to string if it's a number
+      const requestData = {
+        ...req.body,
+        monthlyBudget: req.body.monthlyBudget !== undefined 
+          ? String(req.body.monthlyBudget) 
+          : undefined
+      };
+      
+      const result = insertCategorySchema.partial().safeParse(requestData);
       if (!result.success) {
+        console.log("Validation errors:", result.error.errors);
         return res.status(400).json({ message: "Invalid category data", errors: result.error.errors });
       }
       
@@ -65,6 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(category);
     } catch (error) {
+      console.error("Error updating category:", error);
       res.status(500).json({ message: "Failed to update category" });
     }
   });
