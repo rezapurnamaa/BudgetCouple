@@ -55,6 +55,8 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/analytics'] });
       toast({
         title: "Success",
         description: "Expense updated successfully",

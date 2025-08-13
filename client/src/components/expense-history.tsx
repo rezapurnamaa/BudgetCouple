@@ -25,15 +25,15 @@ export default function ExpenseHistory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingExpense, setEditingExpense] = useState<any>(null);
 
-  const { data: expenses = [], isLoading } = useQuery({
+  const { data: expenses = [], isLoading } = useQuery<(Expense & { category: Category; partner: Partner })[]>({
     queryKey: ["/api/expenses"],
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: partners = [] } = useQuery({
+  const { data: partners = [] } = useQuery<Partner[]>({
     queryKey: ["/api/partners"],
   });
 
@@ -51,10 +51,11 @@ export default function ExpenseHistory() {
         description: "Expense deleted successfully",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Delete error:", error);
       toast({
         title: "Error",
-        description: "Failed to delete expense",
+        description: error.message || "Failed to delete expense",
         variant: "destructive",
       });
     },
@@ -90,7 +91,7 @@ export default function ExpenseHistory() {
   });
 
   // Filter expenses with defensive checks
-  const filteredExpenses = expenses.filter((expense) => {
+  const filteredExpenses = expenses.filter((expense: Expense & { category: Category; partner: Partner }) => {
     if (!expense || !expense.description) return false;
     
     const matchesSearch = expense.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -183,7 +184,7 @@ export default function ExpenseHistory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
+                {categories.map((category: Category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.emoji} {category.name}
                   </SelectItem>
@@ -197,7 +198,7 @@ export default function ExpenseHistory() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Both Partners</SelectItem>
-                {partners.map((partner) => (
+                {partners.map((partner: Partner) => (
                   <SelectItem key={partner.id} value={partner.id}>
                     {partner.name}
                   </SelectItem>
@@ -262,9 +263,9 @@ export default function ExpenseHistory() {
         ) : (
           <>
             <div className="divide-y divide-border">
-              {paginatedExpenses.map((expense) => {
-                const category = categories.find(c => c.id === expense.categoryId);
-                const partner = partners.find(p => p.id === expense.partnerId);
+              {paginatedExpenses.map((expense: Expense & { category: Category; partner: Partner }) => {
+                const category = categories.find((c: Category) => c.id === expense.categoryId);
+                const partner = partners.find((p: Partner) => p.id === expense.partnerId);
                 
                 return (
                   <div key={expense.id} className="py-4 hover:bg-muted/50 transition-colors rounded-lg px-2">
