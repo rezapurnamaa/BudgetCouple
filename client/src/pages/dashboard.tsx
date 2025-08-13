@@ -20,7 +20,7 @@ interface DashboardStats {
 
 function DashboardContent() {
   const isMobile = useIsMobile();
-  
+
   const { data: expenses = [] } = useQuery({
     queryKey: ["/api/expenses"],
   });
@@ -40,26 +40,29 @@ function DashboardContent() {
   const endDate = endOfDay(now);
   const dayCount = differenceInDays(endDate, startDate) + 1;
   const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
-  
+
   const currentMonthExpenses = expenses.filter((expense: any) => {
     if (!expense?.date) return false;
     const expenseDate = new Date(expense.date);
     return expenseDate >= startDate && expenseDate <= endDate;
   });
-  
-  const totalSpent = currentMonthExpenses.reduce((sum: number, expense: any) => {
-    if (!expense || !expense.amount) return sum;
-    const amount = parseFloat(expense.amount);
-    return sum + (isNaN(amount) ? 0 : amount);
-  }, 0);
-  
+
+  const totalSpent = currentMonthExpenses.reduce(
+    (sum: number, expense: any) => {
+      if (!expense || !expense.amount) return sum;
+      const amount = parseFloat(expense.amount);
+      return sum + (isNaN(amount) ? 0 : amount);
+    },
+    0,
+  );
+
   // Calculate proportional budget for the 30-day period
   const totalMonthlyBudget = categories.reduce((sum: number, cat: any) => {
     if (!cat || !cat.budget) return sum;
     const budget = parseFloat(cat.budget);
     return sum + (isNaN(budget) ? 0 : budget);
   }, 0);
-  
+
   const totalBudget = totalMonthlyBudget * budgetMultiplier;
   const budgetRemaining = totalBudget - totalSpent;
   const transactionCount = currentMonthExpenses.length;
@@ -74,21 +77,25 @@ function DashboardContent() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Wallet className="text-primary-foreground text-sm" />
               </div>
-              <h1 className="text-xl font-semibold text-foreground">CoupleFinance</h1>
+              <h1 className="text-xl font-semibold text-foreground">
+                CoupleFinance
+              </h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <DesktopNavigation />
-              
+
               {/* Partner indicators */}
               <div className="flex items-center space-x-2">
                 {partners.map((partner) => (
                   <div key={partner.id} className="flex items-center space-x-1">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
+                    <div
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: partner.color }}
                     />
-                    <span className="text-sm text-muted-foreground">{partner.name}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {partner.name}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -99,7 +106,6 @@ function DashboardContent() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          
           {/* Dashboard Stats and Chart */}
           <div className="lg:col-span-2">
             {/* Stats Cards */}
@@ -108,11 +114,15 @@ function DashboardContent() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Spent</p>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Total Spent
+                      </p>
                       <p className="text-2xl font-bold text-foreground">
                         ${totalSpent.toFixed(2)}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Last 30 days
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                       <CreditCard className="text-primary" />
@@ -120,17 +130,21 @@ function DashboardContent() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Budget Left</p>
-                      <p className={`text-2xl font-bold ${budgetRemaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Budget Left
+                      </p>
+                      <p
+                        className={`text-2xl font-bold ${budgetRemaining >= 0 ? "text-green-600" : "text-red-600"}`}
+                      >
                         ${Math.abs(budgetRemaining).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {budgetRemaining >= 0 ? 'Remaining' : 'Over budget'}
+                        {budgetRemaining >= 0 ? "Remaining" : "Over budget"}
                       </p>
                     </div>
                     <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -139,14 +153,20 @@ function DashboardContent() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Transactions</p>
-                      <p className="text-2xl font-bold text-foreground">{transactionCount}</p>
-                      <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Transactions
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {transactionCount}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Last 30 days
+                      </p>
                     </div>
                     <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                       <Receipt className="text-purple-600" />
@@ -155,25 +175,28 @@ function DashboardContent() {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Quick Add Expense */}
             <div className="mb-6">
               <QuickAddExpense />
             </div>
-            
+
             {/* Spending Chart */}
             <SpendingChart />
           </div>
-          
-          {/* Categories */}
+
+          {/* Categories and History Sidebar */}
           <div className="space-y-6">
             <CategoryBudgets />
+            
+            {/* Expense History - moved under category budgets */}
+            <div className="max-h-80 overflow-hidden">
+              <ExpenseHistory />
+            </div>
+            
             <BudgetAlerts />
           </div>
         </div>
-
-        {/* Expense History */}
-        <ExpenseHistory />
       </div>
 
       {/* Mobile Bottom Navigation with extra padding for iOS */}
