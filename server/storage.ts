@@ -506,7 +506,11 @@ export class MemStorage implements IStorage {
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
     const id = randomUUID();
-    const category: Category = { ...insertCategory, id };
+    const category: Category = { 
+      ...insertCategory, 
+      id,
+      budget: insertCategory.budget ?? null
+    };
     this.categories.set(id, category);
     return category;
   }
@@ -577,6 +581,9 @@ export class MemStorage implements IStorage {
       id,
       date: insertExpense.date ? new Date(insertExpense.date) : new Date(),
       createdAt: new Date(),
+      statementId: insertExpense.statementId ?? null,
+      isVerified: insertExpense.isVerified ?? "pending",
+      originalAmount: insertExpense.originalAmount ?? null,
     };
     this.expenses.set(id, expense);
     return expense;
@@ -607,7 +614,7 @@ export class MemStorage implements IStorage {
   > {
     const spendingMap = new Map<string, number>();
 
-    for (const expense of this.expenses.values()) {
+    for (const expense of Array.from(this.expenses.values())) {
       const current = spendingMap.get(expense.categoryId) || 0;
       spendingMap.set(expense.categoryId, current + parseFloat(expense.amount));
     }
@@ -631,7 +638,7 @@ export class MemStorage implements IStorage {
   async getMonthlySpending(): Promise<{ month: string; total: number }[]> {
     const monthlyMap = new Map<string, number>();
 
-    for (const expense of this.expenses.values()) {
+    for (const expense of Array.from(this.expenses.values())) {
       const month = new Date(expense.date).toISOString().slice(0, 7); // YYYY-MM
       const current = monthlyMap.get(month) || 0;
       monthlyMap.set(month, current + parseFloat(expense.amount));
@@ -654,6 +661,10 @@ export class MemStorage implements IStorage {
       id,
       uploadedAt: new Date(),
       processedAt: null,
+      status: insertStatement.status ?? "pending",
+      totalTransactions: insertStatement.totalTransactions ?? null,
+      processedTransactions: insertStatement.processedTransactions ?? null,
+      errorMessage: insertStatement.errorMessage ?? null,
     };
     this.statements.set(id, statement);
     return statement;

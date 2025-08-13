@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { ExpenseEditModal } from "@/components/expense-edit-modal";
+import type { Expense, Category, Partner } from "@shared/schema";
 
 const ITEMS_PER_PAGE = 10;
 

@@ -3,30 +3,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDateRange } from "@/contexts/date-range-context";
 import { format } from "date-fns";
+import type { Expense, Category, Partner } from "@shared/schema";
 
 export default function CategoryBudgets() {
   const { startDate, endDate, budgetMultiplier } = useDateRange();
   
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
   });
 
   // Calculate spending per category with date range filtering and proportional budgets
-  const categorySpending = categories.map(category => {
+  const categorySpending = categories.map((category) => {
     if (!category) return null;
     
     // Filter expenses by selected date range
-    const filteredExpenses = expenses.filter((expense: any) => {
+    const filteredExpenses = expenses.filter((expense) => {
       if (!expense?.date || expense.categoryId !== category.id) return false;
       const expenseDate = new Date(expense.date);
       return expenseDate >= startDate && expenseDate <= endDate;
     });
     
-    const spent = filteredExpenses.reduce((sum: number, expense: any) => {
+    const spent = filteredExpenses.reduce((sum: number, expense) => {
       if (!expense || !expense.amount) return sum;
       const amount = parseFloat(expense.amount);
       return sum + (isNaN(amount) ? 0 : amount);
@@ -46,7 +47,13 @@ export default function CategoryBudgets() {
       percentage,
       isOverBudget: spent > budget && budget > 0,
     };
-  }).filter(Boolean);
+  }).filter((item): item is Category & {
+    spent: number;
+    budget: number;
+    remaining: number;
+    percentage: number;
+    isOverBudget: boolean;
+  } => item !== null);
 
   return (
     <Card>

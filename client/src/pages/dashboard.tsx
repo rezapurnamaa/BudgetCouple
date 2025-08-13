@@ -11,6 +11,7 @@ import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
 import { subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
+import type { Expense, Category, Partner } from "@shared/schema";
 
 interface DashboardStats {
   totalSpent: number;
@@ -21,15 +22,15 @@ interface DashboardStats {
 function DashboardContent() {
   const isMobile = useIsMobile();
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: partners = [] } = useQuery({
+  const { data: partners = [] } = useQuery<Partner[]>({
     queryKey: ["/api/partners"],
   });
 
@@ -41,14 +42,14 @@ function DashboardContent() {
   const dayCount = differenceInDays(endDate, startDate) + 1;
   const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
 
-  const currentMonthExpenses = expenses.filter((expense: any) => {
+  const currentMonthExpenses = expenses.filter((expense) => {
     if (!expense?.date) return false;
     const expenseDate = new Date(expense.date);
     return expenseDate >= startDate && expenseDate <= endDate;
   });
 
   const totalSpent = currentMonthExpenses.reduce(
-    (sum: number, expense: any) => {
+    (sum: number, expense) => {
       if (!expense || !expense.amount) return sum;
       const amount = parseFloat(expense.amount);
       return sum + (isNaN(amount) ? 0 : amount);
@@ -57,9 +58,9 @@ function DashboardContent() {
   );
 
   // Calculate proportional budget for the 30-day period
-  const totalMonthlyBudget = categories.reduce((sum: number, cat: any) => {
-    if (!cat || !cat.budget) return sum;
-    const budget = parseFloat(cat.budget);
+  const totalMonthlyBudget = categories.reduce((sum: number, category) => {
+    if (!category || !category.budget) return sum;
+    const budget = parseFloat(category.budget);
     return sum + (isNaN(budget) ? 0 : budget);
   }, 0);
 
