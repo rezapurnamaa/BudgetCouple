@@ -39,7 +39,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/categories", async (req, res) => {
     try {
-      const result = insertCategorySchema.safeParse(req.body);
+      // Convert monthlyBudget to string if it's a number
+      const requestData = {
+        ...req.body,
+        monthlyBudget: req.body.monthlyBudget !== undefined 
+          ? String(req.body.monthlyBudget) 
+          : undefined
+      };
+      
+      const result = insertCategorySchema.safeParse(requestData);
       if (!result.success) {
         return res.status(400).json({ message: "Invalid category data", errors: result.error.errors });
       }
