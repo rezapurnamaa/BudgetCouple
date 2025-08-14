@@ -22,11 +22,16 @@ interface BudgetFormData {
 
 export function BudgetPeriodManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetPeriod | null>(null);
   const [formData, setFormData] = useState<BudgetFormData>({
     categoryId: '',
     startDate: '',
     endDate: '',
+    budgetAmount: '',
+  });
+  const [editFormData, setEditFormData] = useState({
+    name: '',
     budgetAmount: '',
   });
   const { toast } = useToast();
@@ -76,16 +81,10 @@ export function BudgetPeriodManager() {
   });
 
   const updateBudgetMutation = useMutation({
-    mutationFn: async ({ budgetId, data }: { budgetId: string; data: BudgetFormData }) => {
-      return await apiRequest(`/api/budget-periods/${budgetId}`, {
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; budgetAmount: string } }) => {
+      return await apiRequest(`/api/budget-periods/${id}`, {
         method: 'PATCH',
-        body: {
-          name: `${categories.find(c => c.id === data.categoryId)?.name} Budget`,
-          categoryId: data.categoryId,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          budgetAmount: data.budgetAmount,
-        },
+        body: data,
       });
     },
     onSuccess: () => {
@@ -94,8 +93,8 @@ export function BudgetPeriodManager() {
         description: 'Budget period has been successfully updated.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/budget-periods'] });
+      setIsEditDialogOpen(false);
       setEditingBudget(null);
-      resetForm();
     },
     onError: (error) => {
       toast({
@@ -107,8 +106,8 @@ export function BudgetPeriodManager() {
   });
 
   const deleteBudgetMutation = useMutation({
-    mutationFn: async (budgetId: string) => {
-      return await apiRequest(`/api/budget-periods/${budgetId}`, {
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/budget-periods/${id}`, {
         method: 'DELETE',
       });
     },
@@ -121,7 +120,7 @@ export function BudgetPeriodManager() {
     },
     onError: (error) => {
       toast({
-        title: 'Deletion Failed',
+        title: 'Delete Failed',
         description: error.message || 'Failed to delete budget period',
         variant: 'destructive',
       });
@@ -135,6 +134,57 @@ export function BudgetPeriodManager() {
       endDate: '',
       budgetAmount: '',
     });
+  };
+
+  const handleEditBudget = (budget: BudgetPeriod) => {
+    setEditingBudget(budget);
+    setEditFormData({
+      name: budget.name,
+      budgetAmount: budget.budgetAmount,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateBudget = () => {
+    if (!editingBudget || !editFormData.name.trim() || !editFormData.budgetAmount) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    updateBudgetMutation.mutate({
+      id: editingBudget.id,
+      data: {
+        name: editFormData.name.trim(),
+        budgetAmount: editFormData.budgetAmount,
+      },
+    });
+  };
+
+  const handleDeleteBudget = (budget: BudgetPeriod) => {
+    // Check if budget period is used in expenses
+    const hasExpenses = expenses.some(expense => {
+      const expenseDate = new Date(expense.date);
+      const startDate = new Date(budget.startDate);
+      const endDate = new Date(budget.endDate);
+      return expense.categoryId === budget.categoryId &&
+             expenseDate >= startDate &&
+             expenseDate <= endDate;
+    });
+
+    if (hasExpenses) {
+      toast({
+        title: 'Cannot Delete',
+        description: 'This budget period has associated expenses and cannot be deleted.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    deleteBudgetMutation.mutate(budget.id);
   };
 
   const handleCreate = () => {
@@ -157,43 +207,6 @@ export function BudgetPeriodManager() {
     }
 
     createBudgetMutation.mutate(formData);
-  };
-
-  const handleUpdate = () => {
-    if (!editingBudget) return;
-    
-    if (!formData.categoryId || !formData.startDate || !formData.endDate || !formData.budgetAmount) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (isAfter(parseISO(formData.startDate), parseISO(formData.endDate))) {
-      toast({
-        title: 'Validation Error',
-        description: 'Start date must be before end date.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    updateBudgetMutation.mutate({
-      budgetId: editingBudget.id,
-      data: formData,
-    });
-  };
-
-  const startEditing = (budget: BudgetPeriod) => {
-    setEditingBudget(budget);
-    setFormData({
-      categoryId: budget.categoryId,
-      startDate: format(new Date(budget.startDate), 'yyyy-MM-dd'),
-      endDate: format(new Date(budget.endDate), 'yyyy-MM-dd'),
-      budgetAmount: budget.budgetAmount,
-    });
   };
 
   const getSpentAmount = (budget: BudgetPeriod): number => {
@@ -388,7 +401,7 @@ export function BudgetPeriodManager() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => startEditing(budget)}
+                            onClick={() => handleEditBudget(budget)}
                             data-testid={`button-edit-budget-${budget.id}`}
                           >
                             <Edit2 className="h-4 w-4" />
@@ -397,7 +410,7 @@ export function BudgetPeriodManager() {
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => deleteBudgetMutation.mutate(budget.id)}
+                            onClick={() => handleDeleteBudget(budget)}
                             data-testid={`button-delete-budget-${budget.id}`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -449,57 +462,25 @@ export function BudgetPeriodManager() {
       </Card>
 
       {/* Edit Budget Dialog */}
-      <Dialog open={!!editingBudget} onOpenChange={(open) => !open && setEditingBudget(null)}>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Budget Period</DialogTitle>
             <DialogDescription>
-              Update the budget period details.
+              Update the budget name and amount.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-category">Category</Label>
-              <Select
-                value={formData.categoryId}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, categoryId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      <div className="flex items-center space-x-2">
-                        <span>{category.emoji}</span>
-                        <span>{category.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-startDate">Start Date</Label>
-                <Input
-                  id="edit-startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-endDate">End Date</Label>
-                <Input
-                  id="edit-endDate"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                />
-              </div>
+              <Label htmlFor="edit-name">Budget Name</Label>
+              <Input
+                id="edit-name"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter budget name"
+                data-testid="input-edit-budget-name"
+              />
             </div>
 
             <div>
@@ -513,10 +494,11 @@ export function BudgetPeriodManager() {
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.budgetAmount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, budgetAmount: e.target.value }))}
+                  value={editFormData.budgetAmount}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, budgetAmount: e.target.value }))}
                   className="pl-8"
                   placeholder="0.00"
+                  data-testid="input-edit-budget-amount"
                 />
               </div>
             </div>
@@ -526,15 +508,16 @@ export function BudgetPeriodManager() {
             <Button
               variant="outline"
               onClick={() => {
+                setIsEditDialogOpen(false);
                 setEditingBudget(null);
-                resetForm();
               }}
             >
               Cancel
             </Button>
             <Button
-              onClick={handleUpdate}
+              onClick={handleUpdateBudget}
               disabled={updateBudgetMutation.isPending}
+              data-testid="button-save-edit-budget"
             >
               Update Budget Period
             </Button>
