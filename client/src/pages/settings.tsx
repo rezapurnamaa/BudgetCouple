@@ -28,6 +28,7 @@ import {
   X
 } from "lucide-react";
 import { format, addMonths, subMonths } from "date-fns";
+import { BudgetPeriodManager } from "@/components/budget-period-manager";
 
 interface BudgetPeriod {
   id: string;
@@ -56,9 +57,7 @@ function SettingsContent() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newPartnerName, setNewPartnerName] = useState("");
   const [newPartnerColor, setNewPartnerColor] = useState("#3b82f6");
-  const [newBudgetName, setNewBudgetName] = useState("");
-  const [newBudgetStartDate, setNewBudgetStartDate] = useState("");
-  const [newBudgetEndDate, setNewBudgetEndDate] = useState("");
+
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryEmoji, setNewCategoryEmoji] = useState("🏷️");
   const [newCategoryColor, setNewCategoryColor] = useState("#3b82f6");
@@ -76,9 +75,7 @@ function SettingsContent() {
     queryKey: ["/api/partners"],
   });
 
-  const { data: budgetPeriods = [] } = useQuery({
-    queryKey: ["/api/budget-periods"],
-  });
+
 
   // Partner mutations
   const addPartnerMutation = useMutation({
@@ -128,36 +125,7 @@ function SettingsContent() {
     },
   });
 
-  // Budget period mutations
-  const addBudgetPeriodMutation = useMutation({
-    mutationFn: async (data: { name: string; startDate: string; endDate: string }) =>
-      apiRequest("/api/budget-periods", { method: "POST", body: data }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/budget-periods"] });
-      setNewBudgetName("");
-      setNewBudgetStartDate("");
-      setNewBudgetEndDate("");
-      toast({ description: "Budget period created successfully" });
-    },
-  });
 
-  const toggleBudgetPeriodMutation = useMutation({
-    mutationFn: async (data: { id: string; isActive: boolean }) =>
-      apiRequest(`/api/budget-periods/${data.id}`, { method: "PATCH", body: data }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/budget-periods"] });
-      toast({ description: "Budget period updated successfully" });
-    },
-  });
-
-  const deleteBudgetPeriodMutation = useMutation({
-    mutationFn: async (id: string) =>
-      apiRequest(`/api/budget-periods/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/budget-periods"] });
-      toast({ description: "Budget period deleted successfully" });
-    },
-  });
 
   const handleAddPartner = () => {
     if (!newPartnerName.trim()) return;
@@ -210,24 +178,7 @@ function SettingsContent() {
     });
   };
 
-  const handleAddBudgetPeriod = () => {
-    if (!newBudgetName.trim() || !newBudgetStartDate || !newBudgetEndDate) return;
-    addBudgetPeriodMutation.mutate({
-      name: newBudgetName.trim(),
-      startDate: newBudgetStartDate,
-      endDate: newBudgetEndDate,
-    });
-  };
 
-  const generateMonthlyBudget = () => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    
-    setNewBudgetName(format(startOfMonth, "MMMM yyyy"));
-    setNewBudgetStartDate(format(startOfMonth, "yyyy-MM-dd"));
-    setNewBudgetEndDate(format(endOfMonth, "yyyy-MM-dd"));
-  };
 
   const colorOptions = [
     "#3b82f6", "#ef4444", "#10b981", "#f59e0b", 
@@ -388,7 +339,7 @@ function SettingsContent() {
                                 value={parseFloat(editingCategory?.monthlyBudget?.toString() || "0")}
                                 onChange={(e) =>
                                   setEditingCategory(prev =>
-                                    prev ? { ...prev, monthlyBudget: e.target.value } : null
+                                    prev ? { ...prev, monthlyBudget: parseFloat(e.target.value) || 0 } : null
                                   )
                                 }
                                 data-testid="input-budget-amount"
@@ -579,123 +530,7 @@ function SettingsContent() {
 
           {/* Budget Periods Tab */}
           <TabsContent value="periods">
-            <div className="space-y-6">
-              {/* Create New Budget Period */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Plus className="h-5 w-5" />
-                    <span>Create Budget Period</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="budget-period-name">Period Name</Label>
-                      <Input
-                        id="budget-period-name"
-                        value={newBudgetName}
-                        onChange={(e) => setNewBudgetName(e.target.value)}
-                        placeholder="e.g., January 2025"
-                        data-testid="input-budget-period-name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="budget-start-date">Start Date</Label>
-                      <Input
-                        id="budget-start-date"
-                        type="date"
-                        value={newBudgetStartDate}
-                        onChange={(e) => setNewBudgetStartDate(e.target.value)}
-                        data-testid="input-budget-start-date"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="budget-end-date">End Date</Label>
-                      <Input
-                        id="budget-end-date"
-                        type="date"
-                        value={newBudgetEndDate}
-                        onChange={(e) => setNewBudgetEndDate(e.target.value)}
-                        data-testid="input-budget-end-date"
-                      />
-                    </div>
-                    <div className="flex items-end space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={generateMonthlyBudget}
-                        data-testid="button-generate-monthly"
-                      >
-                        This Month
-                      </Button>
-                      <Button
-                        onClick={handleAddBudgetPeriod}
-                        disabled={!newBudgetName.trim() || !newBudgetStartDate || !newBudgetEndDate || addBudgetPeriodMutation.isPending}
-                        data-testid="button-create-budget-period"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Existing Budget Periods */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Calendar className="h-5 w-5" />
-                    <span>Budget Periods</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {(budgetPeriods as BudgetPeriod[]).map((period) => (
-                      <div key={period.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <Calendar className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium flex items-center space-x-2">
-                              <span>{period.name}</span>
-                              {period.isActive && <Badge variant="default">Active</Badge>}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(period.startDate), "MMM d, yyyy")} - {format(new Date(period.endDate), "MMM d, yyyy")}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant={period.isActive ? "default" : "outline"}
-                            size="sm"
-                            onClick={() =>
-                              toggleBudgetPeriodMutation.mutate({
-                                id: period.id,
-                                isActive: !period.isActive,
-                              })
-                            }
-                            disabled={toggleBudgetPeriodMutation.isPending}
-                            data-testid={`button-toggle-period-${period.id}`}
-                          >
-                            {period.isActive ? "Deactivate" : "Activate"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteBudgetPeriodMutation.mutate(period.id)}
-                            disabled={deleteBudgetPeriodMutation.isPending}
-                            data-testid={`button-delete-period-${period.id}`}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <BudgetPeriodManager />
           </TabsContent>
         </Tabs>
       </div>
