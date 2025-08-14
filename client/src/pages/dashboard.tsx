@@ -12,7 +12,7 @@ import DateRangePicker from "@/components/date-range-picker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
 import { subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
-import type { Expense, Category, Partner } from "@shared/schema";
+import type { Expense, Category, Partner, BudgetPeriod } from "@shared/schema";
 
 interface DashboardStats {
   totalSpent: number;
@@ -36,6 +36,10 @@ function DashboardContent() {
     queryKey: ["/api/partners"],
   });
 
+  const { data: budgetPeriods = [] } = useQuery<BudgetPeriod[]>({
+    queryKey: ["/api/budget-periods"],
+  });
+
   // Calculate dashboard stats for selected date range
   const dayCount = differenceInDays(endDate, startDate) + 1;
   const budgetMultiplier = dayCount / 30; // Convert to monthly proportion
@@ -55,14 +59,33 @@ function DashboardContent() {
     0,
   );
 
-  // Calculate proportional budget for the 30-day period
-  const totalMonthlyBudget = categories.reduce((sum: number, category) => {
-    if (!category || !category.monthlyBudget) return sum;
-    const budget = parseFloat(category.monthlyBudget);
-    return sum + (isNaN(budget) ? 0 : budget);
+  // Calculate total budget using budget periods when available, fallback to monthly budgets
+  const totalBudget = categories.reduce((sum: number, category) => {
+    if (!category) return sum;
+    
+    // Check for active budget periods that overlap with selected date range and match this category
+    const activeBudgetPeriod = budgetPeriods.find((period) => {
+      if (!period.isActive || period.categoryId !== category.id) return false;
+      const periodStart = new Date(period.startDate);
+      const periodEnd = new Date(period.endDate);
+      
+      // Check if the budget period overlaps with the selected date range
+      return periodStart <= endDate && periodEnd >= startDate;
+    });
+    
+    let categoryBudget: number;
+    
+    if (activeBudgetPeriod) {
+      // Use budget period amount if there's an active period for this category
+      categoryBudget = parseFloat(activeBudgetPeriod.budgetAmount || "0");
+    } else {
+      // Fall back to proportional monthly budget
+      const monthlyBudget = parseFloat(category.monthlyBudget || "0");
+      categoryBudget = isNaN(monthlyBudget) ? 0 : monthlyBudget * budgetMultiplier;
+    }
+    
+    return sum + (isNaN(categoryBudget) ? 0 : categoryBudget);
   }, 0);
-
-  const totalBudget = totalMonthlyBudget * budgetMultiplier;
   const budgetRemaining = totalBudget - totalSpent;
   const transactionCount = filteredExpenses.length;
 
