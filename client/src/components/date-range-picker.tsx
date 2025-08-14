@@ -32,7 +32,7 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(customStartDate);
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(customEndDate);
 
-  const handleQuickRangeSelect = (range: "30-days" | "60-days" | "90-days") => {
+  const handleQuickRangeSelect = (range: "current-month" | "30-days" | "60-days" | "90-days") => {
     setDateRange(range);
     setIsOpen(false);
   };
@@ -74,7 +74,9 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
             </span>
           )}
           <Badge variant="secondary" className="ml-2 text-xs">
-            {dateRange === "custom" ? "Custom" : dateRange}
+            {dateRange === "custom" ? "Custom" : 
+             dateRange === "current-month" ? "Current Month" : 
+             dateRange}
           </Badge>
         </Button>
       </PopoverTrigger>
@@ -82,7 +84,15 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
         <div className="p-4 space-y-4">
           <div>
             <Label className="text-sm font-medium">Quick Select</Label>
-            <div className="grid grid-cols-3 gap-2 mt-2">
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <Button
+                variant={dateRange === "current-month" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleQuickRangeSelect("current-month")}
+                data-testid="button-range-current-month"
+              >
+                Current Month
+              </Button>
               <Button
                 variant={dateRange === "30-days" ? "default" : "outline"}
                 size="sm"

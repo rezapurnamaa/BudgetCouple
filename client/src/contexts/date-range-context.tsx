@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useMemo } from "react";
-import { subDays, startOfDay, endOfDay, differenceInDays } from "date-fns";
+import { subDays, startOfDay, endOfDay, differenceInDays, startOfMonth, endOfMonth } from "date-fns";
 
-type DateRange = "30-days" | "60-days" | "90-days" | "custom";
+type DateRange = "current-month" | "30-days" | "60-days" | "90-days" | "custom";
 
 interface DateRangeContextType {
   dateRange: DateRange;
@@ -33,7 +33,7 @@ interface DateRangeProviderProps {
 }
 
 export function DateRangeProvider({ children }: DateRangeProviderProps) {
-  const [dateRange, setDateRange] = useState<DateRange>("30-days");
+  const [dateRange, setDateRange] = useState<DateRange>("current-month");
   const [customStartDate, setCustomStartDate] = useState<Date>();
   const [customEndDate, setCustomEndDate] = useState<Date>();
 
@@ -48,6 +48,10 @@ export function DateRangeProvider({ children }: DateRangeProviderProps) {
       end = customEndDate;
     } else {
       switch (dateRange) {
+        case "current-month":
+          start = startOfMonth(now);
+          end = endOfMonth(now);
+          break;
         case "30-days":
           start = subDays(now, 30);
           break;
@@ -58,7 +62,8 @@ export function DateRangeProvider({ children }: DateRangeProviderProps) {
           start = subDays(now, 90);
           break;
         default:
-          start = subDays(now, 30);
+          start = startOfMonth(now);
+          end = endOfMonth(now);
       }
     }
     
