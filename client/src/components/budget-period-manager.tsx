@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
 import { format, parseISO, isAfter, isBefore } from 'date-fns';
-import type { Category, BudgetPeriod } from '@shared/schema';
+import type { Category, BudgetPeriod, Expense } from '@shared/schema';
 
 interface BudgetFormData {
   categoryId: string;
@@ -40,7 +40,7 @@ export function BudgetPeriodManager() {
     queryKey: ['/api/budget-periods'],
   });
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ['/api/expenses'],
   });
 
@@ -48,13 +48,13 @@ export function BudgetPeriodManager() {
     mutationFn: async (data: BudgetFormData) => {
       return await apiRequest('/api/budget-periods', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
+          name: `${categories.find(c => c.id === data.categoryId)?.name} Budget`,
           categoryId: data.categoryId,
-          startDate: new Date(data.startDate),
-          endDate: new Date(data.endDate),
+          startDate: data.startDate,
+          endDate: data.endDate,
           budgetAmount: data.budgetAmount,
-        }),
+        },
       });
     },
     onSuccess: () => {
@@ -79,13 +79,13 @@ export function BudgetPeriodManager() {
     mutationFn: async ({ budgetId, data }: { budgetId: string; data: BudgetFormData }) => {
       return await apiRequest(`/api/budget-periods/${budgetId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
+          name: `${categories.find(c => c.id === data.categoryId)?.name} Budget`,
           categoryId: data.categoryId,
-          startDate: new Date(data.startDate),
-          endDate: new Date(data.endDate),
+          startDate: data.startDate,
+          endDate: data.endDate,
           budgetAmount: data.budgetAmount,
-        }),
+        },
       });
     },
     onSuccess: () => {
@@ -201,13 +201,13 @@ export function BudgetPeriodManager() {
     const endDate = new Date(budget.endDate);
     
     return expenses
-      .filter((expense: any) => 
+      .filter((expense) => 
         expense.categoryId === budget.categoryId &&
         expense.date &&
         new Date(expense.date) >= startDate &&
         new Date(expense.date) <= endDate
       )
-      .reduce((sum: number, expense: any) => {
+      .reduce((sum: number, expense) => {
         const amount = parseFloat(expense.amount || '0');
         return sum + (isNaN(amount) ? 0 : amount);
       }, 0);

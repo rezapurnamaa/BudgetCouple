@@ -34,6 +34,8 @@ export const expenses = pgTable("expenses", {
 export const budgetPeriods = pgTable("budget_periods", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
+  categoryId: varchar("category_id").notNull(),
+  budgetAmount: decimal("budget_amount", { precision: 10, scale: 2 }).notNull(),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   isActive: integer("is_active").default(0), // 0 = false, 1 = true (SQLite compatibility)
@@ -76,6 +78,7 @@ export const insertBudgetPeriodSchema = createInsertSchema(budgetPeriods).omit({
 }).extend({
   startDate: z.string(),
   endDate: z.string(),
+  budgetAmount: z.string(),
 });
 
 export const insertStatementSchema = createInsertSchema(statements).omit({
