@@ -334,7 +334,7 @@ export default function ExpenseHistory() {
 
           {/* Bulk actions bar */}
           {isSelectionMode && (
-            <div className="flex items-center justify-between p-4 bg-muted/20 border rounded-lg">
+            <div className="space-y-3 p-4 bg-muted/20 border rounded-lg">
               <div className="flex items-center space-x-3">
                 <Checkbox
                   checked={
@@ -351,9 +351,9 @@ export default function ExpenseHistory() {
               </div>
 
               {selectedExpenses.length > 0 && (
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <Select onValueChange={handleBulkCategoryUpdate}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[160px]">
                       <SelectValue placeholder="Change category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -365,7 +365,7 @@ export default function ExpenseHistory() {
                     </SelectContent>
                   </Select>
                   <Select onValueChange={handleBulkLabelUpdate}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[140px]">
                       <SelectValue placeholder="Change label" />
                     </SelectTrigger>
                     <SelectContent>
@@ -384,7 +384,7 @@ export default function ExpenseHistory() {
                     size="sm"
                     onClick={handleBulkDelete}
                     disabled={bulkDeleteMutation.isPending}
-                    className="flex items-center space-x-2"
+                    className="flex items-center justify-center space-x-2 w-full sm:w-auto"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>
@@ -425,18 +425,19 @@ export default function ExpenseHistory() {
                         key={expense.id}
                         className="py-4 hover:bg-muted/50 transition-colors rounded-lg px-2"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                          <div className="flex items-start space-x-3 sm:space-x-4 min-w-0 flex-1">
                             {isSelectionMode && (
                               <Checkbox
                                 checked={selectedExpenses.includes(expense.id)}
                                 onCheckedChange={() =>
                                   handleSelectExpense(expense.id)
                                 }
+                                className="mt-1"
                               />
                             )}
                             <div
-                              className="w-12 h-12 rounded-lg flex items-center justify-center text-lg"
+                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center text-base sm:text-lg flex-shrink-0"
                               style={{
                                 backgroundColor: category?.color
                                   ? `${category.color}20`
@@ -445,14 +446,25 @@ export default function ExpenseHistory() {
                             >
                               {category?.emoji || "📝"}
                             </div>
-                            <div>
-                              <p className="font-medium text-foreground">
-                                {expense.description}
-                              </p>
-                              <div className="flex items-center space-x-2 mt-1">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <p className="font-medium text-foreground truncate pr-2">
+                                  {expense.description}
+                                </p>
+                                <div className="text-right sm:text-left mt-1 sm:mt-0 flex-shrink-0">
+                                  <p className="font-semibold text-foreground">
+                                    €
+                                    {expense.amount
+                                      ? parseFloat(expense.amount).toFixed(2)
+                                      : "0.00"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
                                 {category && (
                                   <Badge
                                     variant="secondary"
+                                    className="text-xs"
                                     style={{
                                       backgroundColor: `${category.color}20`,
                                       color: category.color,
@@ -467,7 +479,7 @@ export default function ExpenseHistory() {
                                       className="w-2 h-2 rounded-full"
                                       style={{ backgroundColor: partner.color }}
                                     />
-                                    <span className="text-sm text-muted-foreground">
+                                    <span className="text-xs sm:text-sm text-muted-foreground">
                                       {partner.name}
                                     </span>
                                   </div>
@@ -477,7 +489,7 @@ export default function ExpenseHistory() {
                                     {expense.sourceLabel}
                                   </Badge>
                                 )}
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-xs sm:text-sm text-muted-foreground">
                                   {expense.date
                                     ? format(
                                         new Date(expense.date),
@@ -488,36 +500,26 @@ export default function ExpenseHistory() {
                               </div>
                             </div>
                           </div>
-                          <div className="text-right flex items-center space-x-2">
-                            <div>
-                              <p className="font-semibold text-foreground">
-                                €
-                                {expense.amount
-                                  ? parseFloat(expense.amount).toFixed(2)
-                                  : "0.00"}
-                              </p>
+                          {!isSelectionMode && (
+                            <div className="flex justify-end space-x-1 flex-shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingExpense(expense)}
+                                data-testid={`button-edit-expense-${expense.id}`}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(expense.id)}
+                                disabled={deleteExpenseMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                            {!isSelectionMode && (
-                              <div className="flex space-x-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditingExpense(expense)}
-                                  data-testid={`button-edit-expense-${expense.id}`}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDelete(expense.id)}
-                                  disabled={deleteExpenseMutation.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -527,8 +529,8 @@ export default function ExpenseHistory() {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                  <div className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6 pt-4 border-t">
+                  <div className="flex items-center justify-center sm:justify-start space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -538,7 +540,7 @@ export default function ExpenseHistory() {
                       disabled={currentPage === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
+                      <span className="hidden xs:inline">Previous</span>
                     </Button>
                     <Button
                       variant="outline"
@@ -548,11 +550,11 @@ export default function ExpenseHistory() {
                       }
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      <span className="hidden xs:inline">Next</span>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground text-center sm:text-right">
                     Page {currentPage} of {totalPages} •{" "}
                     {filteredExpenses.length} total
                   </div>
