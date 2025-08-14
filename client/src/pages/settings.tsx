@@ -75,6 +75,10 @@ function SettingsContent() {
     queryKey: ["/api/partners"],
   });
 
+  const { data: expenses = [] } = useQuery<any[]>({
+    queryKey: ["/api/expenses"],
+  });
+
 
 
   // Partner mutations
@@ -168,14 +172,45 @@ function SettingsContent() {
     },
   });
 
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: string) =>
+      apiRequest(`/api/categories/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      toast({ description: "Category deleted successfully" });
+    },
+    onError: () => {
+      toast({ 
+        description: "Failed to delete category",
+        variant: "destructive" 
+      });
+    },
+  });
+
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
     addCategoryMutation.mutate({
       name: newCategoryName.trim(),
       emoji: newCategoryEmoji,
       color: newCategoryColor,
-      monthlyBudget: newCategoryBudget || "0",
+      monthlyBudget: parseFloat(newCategoryBudget) || 0,
     });
+  };
+
+  const handleDeleteCategory = (category: Category) => {
+    // Check if category is used in any expenses
+    const hasExpenses = expenses.some((expense: any) => expense.categoryId === category.id);
+    
+    if (hasExpenses) {
+      toast({
+        title: "Cannot Delete Category",
+        description: "This category has associated expenses and cannot be deleted.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    deleteCategoryMutation.mutate(category.id);
   };
 
 
@@ -310,21 +345,22 @@ function SettingsContent() {
                           </p>
                         </div>
                       </div>
-                      <Dialog 
-                        open={editingCategory?.id === category.id} 
-                        onOpenChange={(open) => !open && setEditingCategory(null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditingCategory(category)}
-                            data-testid={`button-edit-budget-${category.id}`}
-                          >
-                            <Edit2 className="h-4 w-4 mr-2" />
-                            Edit Budget
-                          </Button>
-                        </DialogTrigger>
+                      <div className="flex items-center space-x-2">
+                        <Dialog 
+                          open={editingCategory?.id === category.id} 
+                          onOpenChange={(open) => !open && setEditingCategory(null)}
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingCategory(category)}
+                              data-testid={`button-edit-budget-${category.id}`}
+                            >
+                              <Edit2 className="h-4 w-4 mr-2" />
+                              Edit Budget
+                            </Button>
+                          </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Edit Budget for {category.name}</DialogTitle>
@@ -363,7 +399,18 @@ function SettingsContent() {
                             </div>
                           </div>
                         </DialogContent>
-                      </Dialog>
+                        </Dialog>
+                        
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category)}
+                          disabled={deleteCategoryMutation.isPending}
+                          data-testid={`button-delete-category-${category.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
