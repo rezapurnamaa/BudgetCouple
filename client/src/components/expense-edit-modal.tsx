@@ -30,6 +30,7 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
     categoryId: expense.categoryId,
     partnerId: expense.partnerId,
     date: new Date(expense.date),
+    sourceLabel: expense.sourceLabel || '',
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -50,6 +51,7 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
           categoryId: data.categoryId,
           partnerId: data.partnerId,
           date: data.date.toISOString(),
+          sourceLabel: data.sourceLabel,
         },
       });
     },
@@ -197,6 +199,26 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
                     </div>
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="sourceLabel">Source (Optional)</Label>
+            <Select
+              value={formData.sourceLabel}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, sourceLabel: value }))}
+            >
+              <SelectTrigger data-testid="select-edit-source">
+                <SelectValue placeholder="Select source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AMEX">AMEX</SelectItem>
+                <SelectItem value="DKB">DKB Bank</SelectItem>
+                <SelectItem value="PayPal">PayPal</SelectItem>
+                <SelectItem value="Cash">Cash</SelectItem>
+                <SelectItem value="Other Card">Other Card</SelectItem>
+                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
               </SelectContent>
             </Select>
           </div>

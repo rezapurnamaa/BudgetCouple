@@ -29,6 +29,7 @@ export const expenses = pgTable("expenses", {
   statementId: varchar("statement_id"), // Optional - links to uploaded statement
   isVerified: text("is_verified").default("pending"), // 'pending', 'verified', 'rejected'
   originalAmount: text("original_amount"), // Store original amount string from statement
+  sourceLabel: text("source_label"), // Label for expense source: 'AMEX', 'DKB', 'PayPal', etc.
 });
 
 export const budgetPeriods = pgTable("budget_periods", {
@@ -70,6 +71,7 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
   createdAt: true,
 }).extend({
   date: z.string().optional(),
+  sourceLabel: z.string().optional(),
 });
 
 export const insertBudgetPeriodSchema = createInsertSchema(budgetPeriods).omit({

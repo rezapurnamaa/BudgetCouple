@@ -451,6 +451,7 @@ async function processStatementAsync(
           statementId: statementId,
           isVerified: 'pending',
           originalAmount: transaction.originalAmount || transaction.amount.toString(),
+          sourceLabel: transaction.sourceLabel,
         });
 
         processedCount++;

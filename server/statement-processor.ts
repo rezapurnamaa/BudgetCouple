@@ -10,6 +10,7 @@ export interface ParsedTransaction {
   suggestedCategoryId: string;
   confidence: number;
   originalAmount?: string; // Store original amount string for verification
+  sourceLabel?: string; // Auto-assigned based on statement source
 }
 
 export class StatementProcessor {
@@ -53,7 +54,7 @@ export class StatementProcessor {
       return null;
     }
 
-    let date: string, amount: number, description: string, originalAmount: string;
+    let date: string, amount: number, description: string, originalAmount: string, sourceLabel: string;
 
     // Different CSV formats for different sources
     if (source.toLowerCase().includes('amex')) {
@@ -62,18 +63,35 @@ export class StatementProcessor {
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
       amount = Math.abs(this.parseAmount(fields[2] || '0'));
-    } else if (source.toLowerCase().includes('chase') || source.toLowerCase().includes('bank')) {
-      // Chase/Bank format: Date,Description,Amount
+      sourceLabel = 'AMEX';
+    } else if (source.toLowerCase().includes('chase')) {
+      // Chase format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
       amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      sourceLabel = 'Chase';
+    } else if (source.toLowerCase().includes('dkb') || source.toLowerCase().includes('bank')) {
+      // DKB/Bank format: Date,Description,Amount
+      date = this.parseDate(fields[0]);
+      description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+      originalAmount = fields[2] || '0';
+      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      sourceLabel = 'DKB';
+    } else if (source.toLowerCase().includes('paypal')) {
+      // PayPal format: Date,Description,Amount
+      date = this.parseDate(fields[0]);
+      description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+      originalAmount = fields[2] || '0';
+      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      sourceLabel = 'PayPal';
     } else {
       // Generic format
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
       amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      sourceLabel = 'Bank Transfer';
     }
 
     if (amount === 0 || !description) {
@@ -100,7 +118,8 @@ export class StatementProcessor {
       description: description.trim(),
       suggestedCategoryId: categoryId,
       confidence,
-      originalAmount: originalAmount.trim()
+      originalAmount: originalAmount.trim(),
+      sourceLabel
     };
   }
 

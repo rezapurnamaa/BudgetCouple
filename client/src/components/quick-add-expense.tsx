@@ -45,11 +45,11 @@ export default function QuickAddExpense() {
   const queryClient = useQueryClient();
   const [selectedPartner, setSelectedPartner] = useState<string>("");
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<any[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: partners = [] } = useQuery({
+  const { data: partners = [] } = useQuery<any[]>({
     queryKey: ["/api/partners"],
   });
 
@@ -61,6 +61,7 @@ export default function QuickAddExpense() {
       categoryId: "",
       partnerId: "",
       date: new Date().toISOString().split("T")[0],
+      sourceLabel: "",
     },
   });
 
@@ -205,6 +206,32 @@ export default function QuickAddExpense() {
                           </div>
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="sourceLabel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Source (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select source" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="AMEX">AMEX</SelectItem>
+                      <SelectItem value="DKB">DKB Bank</SelectItem>
+                      <SelectItem value="PayPal">PayPal</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Other Card">Other Card</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

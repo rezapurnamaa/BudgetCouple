@@ -357,6 +357,11 @@ export default function ExpenseHistory() {
                                 <span className="text-sm text-muted-foreground">{partner.name}</span>
                               </div>
                             )}
+                            {expense.sourceLabel && (
+                              <Badge variant="outline" className="text-xs">
+                                {expense.sourceLabel}
+                              </Badge>
+                            )}
                             <span className="text-sm text-muted-foreground">
                               {expense.date ? format(new Date(expense.date), "MMM d, yyyy") : 'No date'}
                             </span>
