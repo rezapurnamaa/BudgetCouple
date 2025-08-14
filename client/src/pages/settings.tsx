@@ -174,7 +174,7 @@ function SettingsContent() {
       name: newCategoryName.trim(),
       emoji: newCategoryEmoji,
       color: newCategoryColor,
-      monthlyBudget: parseFloat(newCategoryBudget) || 0,
+      monthlyBudget: newCategoryBudget || "0",
     });
   };
 
