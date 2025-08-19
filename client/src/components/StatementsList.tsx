@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Clock, CheckCircle, AlertCircle, Eye } from "lucide-react";
+import { FileText, Clock, CheckCircle, AlertCircle, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { StatementExpensesView } from "@/components/StatementExpensesView";
+import { cn } from "@/lib/utils";
 
 interface Statement {
   id: string;
@@ -24,6 +25,25 @@ interface Statement {
 
 export function StatementsList() {
   const [selectedStatement, setSelectedStatement] = useState<string | null>(null);
+  const [expandedStatements, setExpandedStatements] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (id: string) => {
+    const newExpanded = new Set(expandedStatements);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedStatements(newExpanded);
+  };
+
+  const truncateFileName = (fileName: string, maxLength: number = 30) => {
+    if (fileName.length <= maxLength) return fileName;
+    const extension = fileName.split('.').pop() || '';
+    const nameWithoutExt = fileName.slice(0, fileName.lastIndexOf('.')) || fileName;
+    const truncatedName = nameWithoutExt.slice(0, maxLength - extension.length - 4) + '...';
+    return extension ? `${truncatedName}.${extension}` : truncatedName;
+  };
 
   const { data: statements = [], isLoading } = useQuery<Statement[]>({
     queryKey: ["/api/statements"],
@@ -114,15 +134,38 @@ export function StatementsList() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {statements.map((statement, index) => (
-            <div key={statement.id}>
+          {statements.map((statement, index) => {
+            const isExpanded = expandedStatements.has(statement.id);
+            const shouldTruncate = statement.fileName.length > 30;
+            
+            return (
+              <div key={statement.id}>
               <div className="flex items-start justify-between p-4 rounded-lg border">
                 <div className="flex-1 space-y-2">
                   {/* Header */}
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-muted-foreground" />
                     <div className="flex-1">
-                      <h4 className="font-medium">{statement.fileName}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium" title={statement.fileName}>
+                          {isExpanded || !shouldTruncate ? statement.fileName : truncateFileName(statement.fileName)}
+                        </h4>
+                        {shouldTruncate && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => toggleExpanded(statement.id)}
+                            data-testid={`expand-${statement.id}`}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span className="capitalize">{statement.source}</span>
                         <span>•</span>
@@ -184,9 +227,10 @@ export function StatementsList() {
                 </div>
               </div>
               
-              {index < statements.length - 1 && <Separator />}
-            </div>
-          ))}
+                {index < statements.length - 1 && <Separator />}
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
