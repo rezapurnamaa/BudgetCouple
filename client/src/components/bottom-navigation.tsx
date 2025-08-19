@@ -1,4 +1,4 @@
-import { Home, BarChart3, Plus, List, Upload, Settings } from "lucide-react";
+import { Home, BarChart3, Plus, List, Upload, Settings, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
@@ -8,7 +8,7 @@ export default function BottomNavigation() {
   const navigationItems = [
     { path: "/", icon: Home, label: "Home", id: "home" },
     { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
-    { path: "/upload", icon: Upload, label: "Upload", id: "upload" },
+    { path: "/statements", icon: FileText, label: "Statements", id: "statements" },
     { path: "#add", icon: Plus, label: "Add", isAction: true, id: "add" },
     { path: "/settings", icon: Settings, label: "Settings", id: "settings" },
   ];

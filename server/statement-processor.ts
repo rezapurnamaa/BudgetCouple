@@ -71,13 +71,32 @@ export class StatementProcessor {
       originalAmount = fields[2] || '0';
       amount = Math.abs(this.parseAmount(fields[2] || '0'));
       sourceLabel = 'Chase';
-    } else if (source.toLowerCase().includes('dkb') || source.toLowerCase().includes('bank')) {
-      // DKB/Bank format: Date,Description,Amount
+    } else if (source.toLowerCase().includes('dkb')) {
+      // DKB format: "Buchungstag";"Wertstellung";"Buchungstext";"Auftraggeber / Begünstigter";"Verwendungszweck";"Kontonummer";"BLZ";"Betrag (EUR)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz"
+      // Common DKB CSV format: Date, Date, Type, Party, Description, Account, BLZ, Amount, etc.
+      if (fields.length >= 8) {
+        date = this.parseDate(fields[0]); // Buchungstag
+        const party = fields[3]?.replace(/"/g, '') || '';
+        const purpose = fields[4]?.replace(/"/g, '') || '';
+        description = purpose || party || 'DKB Transaction';
+        originalAmount = fields[7] || '0'; // Betrag (EUR)
+        amount = Math.abs(this.parseAmount(fields[7] || '0'));
+        sourceLabel = 'DKB';
+      } else {
+        // Fallback for simpler DKB format
+        date = this.parseDate(fields[0]);
+        description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+        originalAmount = fields[2] || '0';
+        amount = Math.abs(this.parseAmount(fields[2] || '0'));
+        sourceLabel = 'DKB';
+      }
+    } else if (source.toLowerCase().includes('bank')) {
+      // Generic Bank format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
       amount = Math.abs(this.parseAmount(fields[2] || '0'));
-      sourceLabel = 'DKB';
+      sourceLabel = 'Bank Transfer';
     } else if (source.toLowerCase().includes('paypal')) {
       // PayPal format: Date,Description,Amount
       date = this.parseDate(fields[0]);

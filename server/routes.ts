@@ -393,6 +393,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Statement upload and processing routes
+  app.post("/api/statements/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { source, partnerId } = req.body;
+      if (!source) {
+        return res.status(400).json({ message: "Source is required" });
+      }
+
+      const csvContent = req.file.buffer.toString('utf8');
+      
+      // Create statement record
+      const statementData = {
+        fileName: req.file.originalname,
+        fileType: 'csv',
+        source: source.toLowerCase(),
+        status: 'pending' as const,
+      };
+
+      const result = insertStatementSchema.safeParse(statementData);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid statement data", 
+          errors: result.error.errors 
+        });
+      }
+
+      const statement = await storage.createStatement(result.data);
+
+      // Process statement asynchronously
+      processStatementAsync(csvContent, statement.id, source, partnerId);
+
+      res.status(201).json({ 
+        statementId: statement.id,
+        message: "Statement uploaded successfully. Processing started." 
+      });
+    } catch (error) {
+      console.error('Statement upload error:', error);
+      res.status(500).json({ message: "Failed to upload statement" });
+    }
+  });
+
+  app.get("/api/statements", async (req, res) => {
+    try {
+      const statements = await storage.getStatements();
+      res.json(statements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statements" });
+    }
+  });
+
+  app.get("/api/statements/:id", async (req, res) => {
+    try {
+      const statement = await storage.getStatement(req.params.id);
+      if (!statement) {
+        return res.status(404).json({ message: "Statement not found" });
+      }
+      res.json(statement);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statement" });
+    }
+  });
+
+  app.get("/api/statements/:id/expenses", async (req, res) => {
+    try {
+      const expenses = await storage.getExpensesByStatement(req.params.id);
+      res.json(expenses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch statement expenses" });
+    }
+  });
+
+  app.patch("/api/expenses/:id/verify", async (req, res) => {
+    try {
+      const { isVerified } = req.body;
+      if (!['pending', 'verified', 'rejected'].includes(isVerified)) {
+        return res.status(400).json({ message: "Invalid verification status" });
+      }
+
+      const updated = await storage.updateExpense(req.params.id, { isVerified });
+      if (!updated) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update expense verification" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
