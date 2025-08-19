@@ -7,9 +7,9 @@ export default function BottomNavigation() {
 
   const navigationItems = [
     { path: "/", icon: Home, label: "Home", id: "home" },
-    { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
-    { path: "/statements", icon: FileText, label: "Statements", id: "statements" },
+    { path: "/history", icon: List, label: "History", id: "history" },
     { path: "#add", icon: Plus, label: "Add", isAction: true, id: "add" },
+    { path: "/statements", icon: FileText, label: "Statements", id: "statements" },
     { path: "/settings", icon: Settings, label: "Settings", id: "settings" },
   ];
 
