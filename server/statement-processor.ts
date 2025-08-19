@@ -27,19 +27,53 @@ export class StatementProcessor {
     }
 
     const transactions: ParsedTransaction[] = [];
-    
-    // Skip header row
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+    let headerFound = false;
+    let headerIndex = -1;
 
-      try {
-        const transaction = await this.parseTransactionLine(line, source);
-        if (transaction) {
-          transactions.push(transaction);
+    // Find the header row for DKB format
+    if (source.toLowerCase().includes('dkb')) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.includes('Buchungsdatum') && line.includes('Betrag (€)')) {
+          headerFound = true;
+          headerIndex = i;
+          console.log(`Found DKB header at line ${i}: ${line}`);
+          break;
         }
-      } catch (error) {
-        console.warn(`Failed to parse line ${i}: ${line}`, error);
+      }
+
+      if (!headerFound) {
+        throw new Error('DKB CSV header not found. Expected format with "Buchungsdatum" and "Betrag (€)" columns.');
+      }
+
+      // Start parsing from after the header
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line || line.length < 10) continue; // Skip empty or very short lines
+
+        try {
+          const transaction = await this.parseTransactionLine(line, source);
+          if (transaction) {
+            transactions.push(transaction);
+          }
+        } catch (error) {
+          console.warn(`Failed to parse DKB line ${i}: ${line}`, error);
+        }
+      }
+    } else {
+      // Generic parsing for other formats - skip first row as header
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        try {
+          const transaction = await this.parseTransactionLine(line, source);
+          if (transaction) {
+            transactions.push(transaction);
+          }
+        } catch (error) {
+          console.warn(`Failed to parse line ${i}: ${line}`, error);
+        }
       }
     }
 
@@ -72,23 +106,30 @@ export class StatementProcessor {
       amount = Math.abs(this.parseAmount(fields[2] || '0'));
       sourceLabel = 'Chase';
     } else if (source.toLowerCase().includes('dkb')) {
-      // DKB format: "Buchungstag";"Wertstellung";"Buchungstext";"Auftraggeber / Begünstigter";"Verwendungszweck";"Kontonummer";"BLZ";"Betrag (EUR)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz"
-      // Common DKB CSV format: Date, Date, Type, Party, Description, Account, BLZ, Amount, etc.
-      if (fields.length >= 8) {
-        date = this.parseDate(fields[0]); // Buchungstag
-        const party = fields[3]?.replace(/"/g, '') || '';
-        const purpose = fields[4]?.replace(/"/g, '') || '';
-        description = purpose || party || 'DKB Transaction';
-        originalAmount = fields[7] || '0'; // Betrag (EUR)
-        amount = Math.abs(this.parseAmount(fields[7] || '0'));
+      // DKB format: "Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"IBAN";"Betrag (€)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz"
+      if (fields.length >= 9) {
+        date = this.parseDate(fields[0]); // Buchungsdatum
+        const payee = fields[4]?.replace(/"/g, '') || ''; // Zahlungsempfänger*in
+        const purpose = fields[5]?.replace(/"/g, '') || ''; // Verwendungszweck  
+        const transactionType = fields[6]?.replace(/"/g, '') || ''; // Umsatztyp
+        
+        // Create meaningful description by combining available info
+        let descriptionParts = [];
+        if (payee && payee !== 'ISSUER') descriptionParts.push(payee);
+        if (purpose) descriptionParts.push(purpose);
+        if (transactionType && transactionType !== 'Ausgang' && transactionType !== 'Eingang') {
+          descriptionParts.push(`[${transactionType}]`);
+        }
+        
+        description = descriptionParts.join(' - ') || 'DKB Transaction';
+        originalAmount = fields[8] || '0'; // Betrag (EUR)
+        amount = Math.abs(this.parseAmount(fields[8] || '0'));
         sourceLabel = 'DKB';
+        
+        console.log(`DKB transaction parsed: ${date}, ${description}, ${originalAmount}`);
       } else {
-        // Fallback for simpler DKB format
-        date = this.parseDate(fields[0]);
-        description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
-        originalAmount = fields[2] || '0';
-        amount = Math.abs(this.parseAmount(fields[2] || '0'));
-        sourceLabel = 'DKB';
+        console.warn(`DKB line has insufficient fields (${fields.length}): ${line.substring(0, 100)}...`);
+        return null;
       }
     } else if (source.toLowerCase().includes('bank')) {
       // Generic Bank format: Date,Description,Amount
@@ -147,12 +188,15 @@ export class StatementProcessor {
     let current = '';
     let inQuotes = false;
     
+    // Detect separator: semicolon for DKB, comma for others
+    const separator = line.includes(';') && line.split(';').length > line.split(',').length ? ';' : ',';
+    
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       
       if (char === '"') {
         inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === separator && !inQuotes) {
         fields.push(current.trim());
         current = '';
       } else {
@@ -202,6 +246,21 @@ export class StatementProcessor {
     
     // Try different formats in order of preference
     const formats = [
+      { 
+        pattern: /(\d{1,2})\.(\d{1,2})\.(\d{2})$/,    // DD.MM.YY (DKB format)
+        handler: (match: RegExpMatchArray) => {
+          const [, day, month, year] = match;
+          const fullYear = parseInt(year) + 2000; // Convert YY to 20YY
+          return new Date(fullYear, parseInt(month) - 1, parseInt(day));
+        }
+      },
+      { 
+        pattern: /(\d{1,2})\.(\d{1,2})\.(\d{4})/,    // DD.MM.yyyy (European format)
+        handler: (match: RegExpMatchArray) => {
+          const [, day, month, year] = match;
+          return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        }
+      },
       { 
         pattern: /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // DD/MM/yyyy or MM/dd/yyyy
         handler: (match: RegExpMatchArray) => {
