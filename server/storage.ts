@@ -86,26 +86,30 @@ export class MemStorage implements IStorage {
   private initializeDefaultData() {
     // Default categories
     const defaultCategories = [
-      { name: "Groceries", emoji: "🛒", color: "#3B82F6", budget: "500.00", monthlyBudget: "500.00" },
-      { name: "Eating out", emoji: "🍽️", color: "#F59E0B", budget: "250.00", monthlyBudget: "250.00" },
-      { name: "Entertainment", emoji: "🎬", color: "#8B5CF6", budget: "200.00", monthlyBudget: "200.00" },
-      { name: "Subscription", emoji: "📱", color: "#10B981", budget: "150.00", monthlyBudget: "150.00" },
-      { name: "Gifts", emoji: "🎁", color: "#EF4444", budget: "200.00", monthlyBudget: "200.00" },
-      { name: "Potluck", emoji: "🫕", color: "#F97316", budget: "100.00", monthlyBudget: "100.00" },
-      { name: "Charity", emoji: "❤️", color: "#EC4899", budget: "100.00", monthlyBudget: "100.00" },
-      { name: "Transport", emoji: "🚗", color: "#84CC16", budget: "300.00", monthlyBudget: "300.00" },
-      { name: "Vacation", emoji: "✈️", color: "#06B6D4", budget: "800.00", monthlyBudget: "800.00" },
-      { name: "Emergency spending", emoji: "🚨", color: "#DC2626", budget: "500.00", monthlyBudget: "500.00" },
-      { name: "Babysitting", emoji: "👶", color: "#A855F7", budget: "200.00", monthlyBudget: "200.00" },
-      { name: "Housekeeping", emoji: "🧹", color: "#059669", budget: "150.00", monthlyBudget: "150.00" },
-      { name: "Supplement/medicine", emoji: "💊", color: "#0891B2", budget: "100.00", monthlyBudget: "100.00" },
+      { name: "Groceries", emoji: "🛒", color: "#3B82F6", budget: "500.00", monthlyBudget: "500.00", includeInSpending: 1 },
+      { name: "Eating out", emoji: "🍽️", color: "#F59E0B", budget: "250.00", monthlyBudget: "250.00", includeInSpending: 1 },
+      { name: "Entertainment", emoji: "🎬", color: "#8B5CF6", budget: "200.00", monthlyBudget: "200.00", includeInSpending: 1 },
+      { name: "Subscription", emoji: "📱", color: "#10B981", budget: "150.00", monthlyBudget: "150.00", includeInSpending: 1 },
+      { name: "Gifts", emoji: "🎁", color: "#EF4444", budget: "200.00", monthlyBudget: "200.00", includeInSpending: 1 },
+      { name: "Potluck", emoji: "🫕", color: "#F97316", budget: "100.00", monthlyBudget: "100.00", includeInSpending: 1 },
+      { name: "Charity", emoji: "❤️", color: "#EC4899", budget: "100.00", monthlyBudget: "100.00", includeInSpending: 0 },
+      { name: "Transport", emoji: "🚗", color: "#84CC16", budget: "300.00", monthlyBudget: "300.00", includeInSpending: 1 },
+      { name: "Vacation", emoji: "✈️", color: "#06B6D4", budget: "800.00", monthlyBudget: "800.00", includeInSpending: 1 },
+      { name: "Emergency spending", emoji: "🚨", color: "#DC2626", budget: "500.00", monthlyBudget: "500.00", includeInSpending: 1 },
+      { name: "Babysitting", emoji: "👶", color: "#A855F7", budget: "200.00", monthlyBudget: "200.00", includeInSpending: 1 },
+      { name: "Housekeeping", emoji: "🧹", color: "#059669", budget: "150.00", monthlyBudget: "150.00", includeInSpending: 1 },
+      { name: "Supplement/medicine", emoji: "💊", color: "#0891B2", budget: "100.00", monthlyBudget: "100.00", includeInSpending: 1 },
     ];
 
     const categoryIds: string[] = [];
     defaultCategories.forEach((cat) => {
       const id = randomUUID();
       categoryIds.push(id);
-      this.categories.set(id, { ...cat, id });
+      this.categories.set(id, { 
+        ...cat, 
+        id,
+        includeInSpending: cat.includeInSpending ? 1 : 0
+      });
     });
 
     // Default partners
@@ -496,6 +500,7 @@ export class MemStorage implements IStorage {
         statementId: null,
         isVerified: 'verified',
         originalAmount: null,
+        sourceLabel: 'Cash',
       };
 
       this.expenses.set(expense.id, expense);
@@ -512,7 +517,8 @@ export class MemStorage implements IStorage {
       ...insertCategory, 
       id,
       budget: insertCategory.budget ?? null,
-      monthlyBudget: insertCategory.monthlyBudget ?? null
+      monthlyBudget: insertCategory.monthlyBudget ?? null,
+      includeInSpending: insertCategory.includeInSpending ?? 1
     };
     this.categories.set(id, category);
     return category;
@@ -575,6 +581,7 @@ export class MemStorage implements IStorage {
             color: "#6B7280",
             budget: null,
             monthlyBudget: null,
+            includeInSpending: 1,
           },
           partner: partner || { id: "", name: "Unknown", color: "#6B7280" },
         };
@@ -601,6 +608,7 @@ export class MemStorage implements IStorage {
       statementId: insertExpense.statementId ?? null,
       isVerified: insertExpense.isVerified ?? "pending",
       originalAmount: insertExpense.originalAmount ?? null,
+      sourceLabel: insertExpense.sourceLabel ?? null,
     };
     this.expenses.set(id, expense);
     return expense;
@@ -648,6 +656,7 @@ export class MemStorage implements IStorage {
           color: "#6B7280",
           budget: null,
           monthlyBudget: null,
+          includeInSpending: 1,
         },
       };
     });

@@ -35,6 +35,7 @@ export default function ExpenseHistory() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [partnerFilter, setPartnerFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedExpenses, setSelectedExpenses] = useState<string[]>([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -182,6 +183,9 @@ export default function ExpenseHistory() {
     },
   });
 
+  // Get unique source labels from expenses
+  const sourceLabels = Array.from(new Set(expenses.map(expense => expense.sourceLabel).filter(Boolean))) as string[];
+
   // Filter expenses with defensive checks
   const filteredExpenses = expenses.filter(
     (expense: Expense & { category: Category; partner: Partner }) => {
@@ -194,8 +198,10 @@ export default function ExpenseHistory() {
         categoryFilter === "all" || expense.categoryId === categoryFilter;
       const matchesPartner =
         partnerFilter === "all" || expense.partnerId === partnerFilter;
+      const matchesSource =
+        sourceFilter === "all" || expense.sourceLabel === sourceFilter;
 
-      return matchesSearch && matchesCategory && matchesPartner;
+      return matchesSearch && matchesCategory && matchesPartner && matchesSource;
     },
   );
 
@@ -208,7 +214,7 @@ export default function ExpenseHistory() {
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, categoryFilter, partnerFilter]);
+  }, [searchQuery, categoryFilter, partnerFilter, sourceFilter]);
 
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this expense?")) {
@@ -315,6 +321,20 @@ export default function ExpenseHistory() {
                   {partners.map((partner: Partner) => (
                     <SelectItem key={partner.id} value={partner.id}>
                       {partner.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger className="w-full sm:w-auto">
+                  <SelectValue placeholder="All Sources" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  {sourceLabels.map((source) => (
+                    <SelectItem key={source} value={source}>
+                      {source}
                     </SelectItem>
                   ))}
                 </SelectContent>

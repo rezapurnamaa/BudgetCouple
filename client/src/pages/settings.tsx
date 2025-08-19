@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DesktopNavigation from "@/components/desktop-navigation";
@@ -50,6 +51,7 @@ interface Category {
   emoji: string;
   color: string;
   monthlyBudget: number;
+  includeInSpending?: number;
 }
 
 function SettingsContent() {
@@ -62,6 +64,7 @@ function SettingsContent() {
   const [newCategoryEmoji, setNewCategoryEmoji] = useState("🏷️");
   const [newCategoryColor, setNewCategoryColor] = useState("#3b82f6");
   const [newCategoryBudget, setNewCategoryBudget] = useState("");
+  const [newCategoryIncludeInSpending, setNewCategoryIncludeInSpending] = useState(true);
 
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -154,14 +157,15 @@ function SettingsContent() {
 
   // Category mutations
   const addCategoryMutation = useMutation({
-    mutationFn: async (data: { name: string; emoji: string; color: string; monthlyBudget: number }) =>
+    mutationFn: async (data: { name: string; emoji: string; color: string; monthlyBudget: number; includeInSpending: boolean }) =>
       apiRequest("/api/categories", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       setNewCategoryName("");
       setNewCategoryEmoji("🏷️");
-      setNewCategoryColor("#3b82f6");
+      setNewCategoryColor(displayColorOptions[0] || "#3b82f6");
       setNewCategoryBudget("");
+      setNewCategoryIncludeInSpending(true);
       toast({ description: "Category added successfully" });
     },
     onError: () => {
@@ -187,6 +191,22 @@ function SettingsContent() {
     },
   });
 
+  const updateCategorySpendingMutation = useMutation({
+    mutationFn: async (data: { id: string; includeInSpending: boolean }) =>
+      apiRequest(`/api/categories/${data.id}`, { method: "PATCH", body: { includeInSpending: data.includeInSpending ? 1 : 0 } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
+      toast({ description: "Category spending setting updated" });
+    },
+    onError: () => {
+      toast({ 
+        description: "Failed to update category",
+        variant: "destructive" 
+      });
+    },
+  });
+
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
     addCategoryMutation.mutate({
@@ -194,6 +214,7 @@ function SettingsContent() {
       emoji: newCategoryEmoji,
       color: newCategoryColor,
       monthlyBudget: parseFloat(newCategoryBudget) || 0,
+      includeInSpending: newCategoryIncludeInSpending,
     });
   };
 
@@ -215,10 +236,21 @@ function SettingsContent() {
 
 
 
-  const colorOptions = [
+  const allColorOptions = [
     "#3b82f6", "#ef4444", "#10b981", "#f59e0b", 
-    "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"
+    "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16",
+    "#f97316", "#1d4ed8", "#dc2626", "#059669",
+    "#7c3aed", "#db2777", "#0891b2", "#65a30d"
   ];
+
+  // Get colors already used by existing categories
+  const usedColors = new Set((categories as Category[]).map((cat) => cat.color));
+  
+  // Available colors are those not already used
+  const colorOptions = allColorOptions.filter(color => !usedColors.has(color));
+  
+  // If no colors available, show all colors (in case user wants to reuse)
+  const displayColorOptions = colorOptions.length > 0 ? colorOptions : allColorOptions;
 
   return (
     <div className="min-h-screen bg-background">
@@ -284,16 +316,17 @@ function SettingsContent() {
                     </div>
                     <div>
                       <Label htmlFor="category-color">Color</Label>
-                      <div className="flex space-x-2 mt-2">
-                        {colorOptions.map((color) => (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {displayColorOptions.map((color) => (
                           <button
                             key={color}
                             onClick={() => setNewCategoryColor(color)}
                             className={`w-8 h-8 rounded-full border-2 ${
                               newCategoryColor === color ? "border-primary" : "border-gray-300"
-                            }`}
+                            } ${usedColors.has(color) ? "opacity-50" : ""}`}
                             style={{ backgroundColor: color }}
                             data-testid={`category-color-option-${color}`}
+                            title={usedColors.has(color) ? "Color already in use" : "Available color"}
                           />
                         ))}
                       </div>
@@ -309,6 +342,21 @@ function SettingsContent() {
                         placeholder="0.00"
                         data-testid="input-category-budget"
                       />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Switch
+                          id="include-in-spending"
+                          checked={newCategoryIncludeInSpending}
+                          onCheckedChange={setNewCategoryIncludeInSpending}
+                        />
+                        <Label htmlFor="include-in-spending" className="text-sm">
+                          Include in spending calculations
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Toggle off for categories like savings or investments
+                      </p>
                     </div>
                     <div className="flex items-end">
                       <Button
@@ -343,6 +391,20 @@ function SettingsContent() {
                           <p className="text-sm text-muted-foreground">
                             Monthly Budget: €{(parseFloat(category.monthlyBudget?.toString() || "0")).toFixed(2)}
                           </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Switch
+                              checked={Boolean(category.includeInSpending)}
+                              onCheckedChange={(checked) => 
+                                updateCategorySpendingMutation.mutate({
+                                  id: category.id,
+                                  includeInSpending: checked
+                                })
+                              }
+                              disabled={updateCategorySpendingMutation.isPending}
+                              size="sm"
+                            />
+                            <span className="text-xs text-muted-foreground">Include in spending</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">

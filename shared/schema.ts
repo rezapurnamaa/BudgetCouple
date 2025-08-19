@@ -10,6 +10,7 @@ export const categories = pgTable("categories", {
   color: text("color").notNull(),
   budget: decimal("budget", { precision: 10, scale: 2 }),
   monthlyBudget: decimal("monthly_budget", { precision: 10, scale: 2 }).default("0"),
+  includeInSpending: integer("include_in_spending").default(1), // 0 = false, 1 = true
 });
 
 export const partners = pgTable("partners", {
