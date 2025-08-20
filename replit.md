@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 - **Partners**: User/partner management with color coding
 - **Expenses**: Transaction records with amount, description, category, partner, and date
   - **Statement Processing**: Automated CSV upload with AI categorization and European format support
+  - **AMEX Integration**: Auto-tags partners based on cardholder names in AMEX statements
   - **Amount Parsing**: European decimal format support (comma as decimal separator: "47,40" = €47.40)
   - **Date Parsing**: European date format support (DD-MM-YYYY priority over MM-DD-YYYY)
 - **Relationships**: Foreign key relationships between expenses, categories, and partners

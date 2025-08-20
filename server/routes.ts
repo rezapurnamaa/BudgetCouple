@@ -511,7 +511,7 @@ async function processStatementAsync(
       throw new Error('No categories found. Please add categories first.');
     }
 
-    const processor = new StatementProcessor(categories);
+    const processor = new StatementProcessor(categories, partners);
     const transactions = await processor.parseCSVStatement(csvContent, source);
 
     console.log(`Parsed ${transactions.length} transactions`);
@@ -527,13 +527,15 @@ async function processStatementAsync(
     // Process each transaction
     for (const transaction of transactions) {
       try {
-        // Use provided default partner or first available partner
-        const partnerId = defaultPartnerId || partners[0]?.id;
+        // For AMEX, use suggested partner from cardholder name, otherwise use default
+        let partnerId = transaction.suggestedPartnerId || defaultPartnerId || partners[0]?.id;
         
         if (!partnerId) {
           errors.push(`No partner available for transaction: ${transaction.description}`);
           continue;
         }
+
+        console.log(`Creating expense - Partner: ${partnerId}, Description: ${transaction.description}, Cardholder: ${transaction.cardholderName || 'N/A'}`);
 
         await storage.createExpense({
           amount: transaction.amount.toString(),

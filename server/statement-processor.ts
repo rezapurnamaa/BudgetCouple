@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { Category } from "@shared/schema";
+import type { Category, Partner } from "@shared/schema";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -11,13 +11,17 @@ export interface ParsedTransaction {
   confidence: number;
   originalAmount?: string; // Store original amount string for verification
   sourceLabel?: string; // Auto-assigned based on statement source
+  suggestedPartnerId?: string; // Auto-assigned partner based on statement data
+  cardholderName?: string; // For AMEX statements
 }
 
 export class StatementProcessor {
   private categories: Category[];
+  private partners: Partner[];
 
-  constructor(categories: Category[]) {
+  constructor(categories: Category[], partners: Partner[] = []) {
     this.categories = categories;
+    this.partners = partners;
   }
 
   async parseCSVStatement(csvContent: string, source: string): Promise<ParsedTransaction[]> {
@@ -58,6 +62,21 @@ export class StatementProcessor {
           }
         } catch (error) {
           console.warn(`Failed to parse DKB line ${i}: ${line}`, error);
+        }
+      }
+    } else if (source.toLowerCase().includes('amex')) {
+      // AMEX format with specific columns: Datum,Beschreibung,Karteninhaber,Konto #,Betrag
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        try {
+          const transaction = await this.parseAmexTransactionLine(line, source);
+          if (transaction) {
+            transactions.push(transaction);
+          }
+        } catch (error) {
+          console.warn(`Failed to parse AMEX line ${i}: ${line}`, error);
         }
       }
     } else {
@@ -181,6 +200,90 @@ export class StatementProcessor {
       originalAmount: originalAmount.trim(),
       sourceLabel
     };
+  }
+
+  private async parseAmexTransactionLine(line: string, source: string): Promise<ParsedTransaction | null> {
+    // AMEX format: Datum,Beschreibung,Karteninhaber,Konto #,Betrag
+    const fields = this.parseCSVLine(line);
+    
+    if (fields.length < 5) {
+      return null;
+    }
+
+    const dateStr = fields[0]?.replace(/"/g, '') || '';
+    const description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
+    const cardholderName = fields[2]?.replace(/"/g, '') || '';
+    const accountNum = fields[3]?.replace(/"/g, '') || '';
+    const amountStr = fields[4]?.replace(/"/g, '') || '0';
+
+    // Parse date from DD/MM/YYYY format
+    const date = this.parseDate(dateStr);
+    const amount = Math.abs(this.parseAmount(amountStr));
+    
+    if (amount === 0 || !description) {
+      return null;
+    }
+
+    // Find matching partner based on cardholder name
+    const suggestedPartnerId = this.findPartnerByName(cardholderName);
+
+    // Try fallback categorization first (faster, no API calls)
+    const fallbackResult = this.fallbackCategorization(description);
+    
+    let categoryId = fallbackResult.categoryId;
+    let confidence = fallbackResult.confidence;
+    
+    // Only use AI categorization if fallback confidence is low (< 0.6) or no match found
+    if (confidence < 0.6) {
+      console.log(`Low confidence (${confidence}) for "${description}", using AI categorization...`);
+      const aiResult = await this.categorizeBusiness(description);
+      categoryId = aiResult.categoryId;
+      confidence = aiResult.confidence;
+    }
+
+    return {
+      date,
+      amount,
+      description: description.trim(),
+      suggestedCategoryId: categoryId,
+      confidence,
+      originalAmount: amountStr.trim(),
+      sourceLabel: 'AMEX',
+      suggestedPartnerId,
+      cardholderName: cardholderName.trim()
+    };
+  }
+
+  private findPartnerByName(cardholderName: string): string | undefined {
+    if (!cardholderName || this.partners.length === 0) {
+      return undefined;
+    }
+
+    // Try exact match first
+    const exactMatch = this.partners.find(partner => 
+      partner.name.toLowerCase() === cardholderName.toLowerCase()
+    );
+    if (exactMatch) {
+      return exactMatch.id;
+    }
+
+    // Try partial match (contains name or name contains partner name)
+    const partialMatch = this.partners.find(partner => {
+      const partnerNameLower = partner.name.toLowerCase();
+      const cardholderLower = cardholderName.toLowerCase();
+      
+      // Check if either name contains the other
+      return partnerNameLower.includes(cardholderLower) || 
+             cardholderLower.includes(partnerNameLower);
+    });
+    
+    if (partialMatch) {
+      console.log(`Found partner match: "${cardholderName}" -> "${partialMatch.name}"`);
+      return partialMatch.id;
+    }
+
+    console.log(`No partner match found for cardholder: "${cardholderName}"`);
+    return undefined;
   }
 
   private parseCSVLine(line: string): string[] {
