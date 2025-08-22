@@ -122,82 +122,52 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
 
           <div className="border-t pt-4">
             <Label className="text-sm font-medium">Custom Range</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <div>
-                <Label className="text-xs text-muted-foreground">Start Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start text-left font-normal"
-                      data-testid="button-start-date"
-                    >
-                      <CalendarIcon className="mr-2 h-3 w-3" />
-                      {tempStartDate ? format(tempStartDate, "MMM d, yyyy") : "Pick date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={tempStartDate}
-                      onSelect={setTempStartDate}
-                      initialFocus
-                      data-testid="calendar-start-date"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              
-              <div>
-                <Label className="text-xs text-muted-foreground">End Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start text-left font-normal"
-                      data-testid="button-end-date"
-                    >
-                      <CalendarIcon className="mr-2 h-3 w-3" />
-                      {tempEndDate ? format(tempEndDate, "MMM d, yyyy") : "Pick date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={tempEndDate}
-                      onSelect={setTempEndDate}
-                      initialFocus
-                      disabled={(date) => tempStartDate ? date < tempStartDate : false}
-                      data-testid="calendar-end-date"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            <div className="mt-2">
+              <Calendar
+                mode="range"
+                defaultMonth={tempStartDate || new Date()}
+                selected={tempStartDate && tempEndDate ? { from: tempStartDate, to: tempEndDate } : undefined}
+                onSelect={(range) => {
+                  if (range?.from) {
+                    setTempStartDate(range.from);
+                  }
+                  if (range?.to) {
+                    setTempEndDate(range.to);
+                  }
+                  // Auto-apply when both dates are selected
+                  if (range?.from && range?.to) {
+                    setCustomDateRange(range.from, range.to);
+                    setIsOpen(false);
+                  }
+                }}
+                numberOfMonths={2}
+                data-testid="calendar-range-picker"
+              />
             </div>
             
-            <div className="flex space-x-2 mt-3">
-              <Button
-                size="sm"
-                onClick={handleCustomRangeApply}
-                disabled={!isCustomRangeValid}
-                className="flex-1"
-                data-testid="button-apply-custom-range"
-              >
-                <Check className="mr-2 h-3 w-3" />
-                Apply
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-                data-testid="button-cancel-range"
-              >
-                <X className="mr-2 h-3 w-3" />
-                Cancel
-              </Button>
-            </div>
+            {tempStartDate && tempEndDate && (
+              <div className="flex space-x-2 mt-3">
+                <Button
+                  size="sm"
+                  onClick={handleCustomRangeApply}
+                  disabled={!isCustomRangeValid}
+                  className="flex-1"
+                  data-testid="button-apply-custom-range"
+                >
+                  <Check className="mr-2 h-3 w-3" />
+                  Apply Range
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  data-testid="button-cancel-range"
+                >
+                  <X className="mr-2 h-3 w-3" />
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </PopoverContent>
