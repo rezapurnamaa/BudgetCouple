@@ -115,14 +115,14 @@ export class StatementProcessor {
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      amount = this.parseAmount(fields[2] || '0'); // Preserve sign for refunds
       sourceLabel = 'AMEX';
     } else if (source.toLowerCase().includes('chase')) {
       // Chase format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      amount = this.parseAmount(fields[2] || '0'); // Preserve sign for refunds
       sourceLabel = 'Chase';
     } else if (source.toLowerCase().includes('dkb')) {
       // DKB format: "Buchungsdatum";"Wertstellung";"Status";"Zahlungspflichtige*r";"Zahlungsempfänger*in";"Verwendungszweck";"Umsatztyp";"IBAN";"Betrag (€)";"Gläubiger-ID";"Mandatsreferenz";"Kundenreferenz"
@@ -142,7 +142,7 @@ export class StatementProcessor {
         
         description = descriptionParts.join(' - ') || 'DKB Transaction';
         originalAmount = fields[8] || '0'; // Betrag (EUR)
-        amount = Math.abs(this.parseAmount(fields[8] || '0'));
+        amount = this.parseAmount(fields[8] || '0'); // Preserve sign for refunds
         sourceLabel = 'DKB';
         
         console.log(`DKB transaction parsed: ${date}, ${description}, ${originalAmount}`);
@@ -155,21 +155,21 @@ export class StatementProcessor {
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      amount = this.parseAmount(fields[2] || '0'); // Preserve sign for refunds
       sourceLabel = 'Bank Transfer';
     } else if (source.toLowerCase().includes('paypal')) {
       // PayPal format: Date,Description,Amount
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      amount = this.parseAmount(fields[2] || '0'); // Preserve sign for refunds
       sourceLabel = 'PayPal';
     } else {
       // Generic format
       date = this.parseDate(fields[0]);
       description = fields[1]?.replace(/"/g, '') || 'Unknown transaction';
       originalAmount = fields[2] || '0';
-      amount = Math.abs(this.parseAmount(fields[2] || '0'));
+      amount = this.parseAmount(fields[2] || '0'); // Preserve sign for refunds
       sourceLabel = 'Bank Transfer';
     }
 
@@ -218,7 +218,7 @@ export class StatementProcessor {
 
     // Parse date from DD/MM/YYYY format
     const date = this.parseDate(dateStr);
-    const amount = Math.abs(this.parseAmount(amountStr));
+    const amount = this.parseAmount(amountStr); // Preserve sign for refunds
     
     if (amount === 0 || !description) {
       return null;

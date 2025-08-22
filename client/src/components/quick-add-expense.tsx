@@ -30,8 +30,8 @@ const formSchema = insertExpenseSchema.extend({
     .string()
     .min(1, "Amount is required")
     .regex(
-      /^[0-9]+([.,][0-9]{1,2})?$/,
-      "Please enter a valid amount (e.g., 10.50 or 10,50)",
+      /^-?[0-9]+([.,][0-9]{1,2})?$/,
+      "Please enter a valid amount (e.g., 10.50, -5.00 for refunds)",
     ),
   description: z.string().min(1, "Description is required"),
   categoryId: z.string().min(1, "Please select a category"),
@@ -67,11 +67,12 @@ export default function QuickAddExpense() {
 
   const createExpenseMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      // Handle comma as decimal separator
+      // Handle comma as decimal separator and preserve sign for refunds
       const normalizedAmount = data.amount.replace(",", ".");
+      const parsedAmount = parseFloat(normalizedAmount);
       const expenseData = {
         ...data,
-        amount: parseFloat(normalizedAmount).toFixed(2),
+        amount: parsedAmount.toFixed(2), // Keep the sign for negative amounts (refunds)
       };
       return apiRequest("/api/expenses", {
         method: "POST",
@@ -147,7 +148,7 @@ export default function QuickAddExpense() {
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Amount (use minus sign for refunds)</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
@@ -156,11 +157,11 @@ export default function QuickAddExpense() {
                       <Input
                         {...field}
                         type="text"
-                        placeholder="0.00"
+                        placeholder="10.50 or -5.00 for refund"
                         className="pl-8"
                         onChange={(e) => {
-                          // Allow only numbers, dots, and commas
-                          const value = e.target.value.replace(/[^0-9.,]/g, "");
+                          // Allow numbers, dots, commas, and minus sign
+                          const value = e.target.value.replace(/[^0-9.,-]/g, "");
                           field.onChange(value);
                         }}
                       />

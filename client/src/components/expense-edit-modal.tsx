@@ -97,8 +97,8 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
   };
 
   const formatAmount = (value: string) => {
-    // Remove any non-numeric characters except comma and dot
-    const cleaned = value.replace(/[^\d.,]/g, '');
+    // Remove any non-numeric characters except comma, dot, and minus sign
+    const cleaned = value.replace(/[^\d.,-]/g, '');
     
     // Handle European format (comma as decimal separator)
     if (cleaned.includes(',') && !cleaned.includes('.')) {
@@ -136,7 +136,7 @@ export function ExpenseEditModal({ expense, isOpen, onClose }: ExpenseEditModalP
                 const formatted = formatAmount(e.target.value);
                 setFormData(prev => ({ ...prev, amount: formatted }));
               }}
-              placeholder="Enter amount (e.g., 25.50 or 25,50)"
+              placeholder="Enter amount (e.g., 25.50 or -5.00 for refund)"
               data-testid="input-edit-amount"
               required
             />
