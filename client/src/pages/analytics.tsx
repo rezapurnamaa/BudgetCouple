@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
+import type { Expense, Category, Partner } from "@shared/schema";
 
 function AnalyticsContent() {
   const [timeRange, setTimeRange] = useState("6months");
@@ -48,20 +49,20 @@ function AnalyticsContent() {
   const { startDate, endDate, setCustomDateRange } = useDateRange();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const { data: expenses = [] } = useQuery({
+  const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
   });
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: partners = [] } = useQuery({
+  const { data: partners = [] } = useQuery<Partner[]>({
     queryKey: ["/api/partners"],
   });
 
   // Filter expenses by date range
-  const filteredExpenses = expenses.filter((expense) => {
+  const filteredExpenses = expenses.filter((expense: Expense) => {
     if (!expense || !expense.date) return false;
     const expenseDate = new Date(expense.date);
     return expenseDate >= startDate && expenseDate <= endDate;
@@ -92,13 +93,13 @@ function AnalyticsContent() {
         const weekEnd = new Date(weekStart);
         weekEnd.setDate(weekStart.getDate() + 6);
 
-        const weekExpenses = filteredExpenses.filter((expense) => {
+        const weekExpenses = filteredExpenses.filter((expense: Expense) => {
           if (!expense || !expense.date) return false;
           const expenseDate = new Date(expense.date);
           return expenseDate >= weekStart && expenseDate <= weekEnd;
         });
 
-        const total = weekExpenses.reduce((sum, expense) => {
+        const total = weekExpenses.reduce((sum: number, expense: Expense) => {
           if (!expense || !expense.amount) return sum;
           const amount = parseFloat(expense.amount);
           return sum + (isNaN(amount) ? 0 : amount);
@@ -124,13 +125,13 @@ function AnalyticsContent() {
             0,
           ); // Last day of month
 
-          const monthExpenses = filteredExpenses.filter((expense) => {
+          const monthExpenses = filteredExpenses.filter((expense: Expense) => {
             if (!expense || !expense.date) return false;
             const expenseDate = new Date(expense.date);
             return expenseDate >= monthStart && expenseDate <= monthEnd;
           });
 
-          const total = monthExpenses.reduce((sum, expense) => {
+          const total = monthExpenses.reduce((sum: number, expense: Expense) => {
             if (!expense || !expense.amount) return sum;
             const amount = parseFloat(expense.amount);
             return sum + (isNaN(amount) ? 0 : amount);
@@ -392,7 +393,7 @@ function AnalyticsContent() {
                         ) => {
                           const isSpent = name === "spent";
                           const category = categoryComparison.find(
-                            (c) => c.name === props.payload?.name,
+                            (c: any) => c?.name === props.payload?.name,
                           );
                           if (!category) return [`€${value.toFixed(2)}`, name];
 
@@ -448,8 +449,8 @@ function AnalyticsContent() {
                         radius={[2, 2, 0, 0]}
                       />
                       <Bar dataKey="spent" name="spent" radius={[2, 2, 0, 0]}>
-                        {categoryComparison.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.spentColor} />
+                        {categoryComparison.map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={entry?.spentColor} />
                         ))}
                       </Bar>
                     </BarChart>
