@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useDateRange } from "@/contexts/date-range-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Calendar as CalendarIcon, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -27,10 +28,20 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
     endDate,
     setCustomDateRange
   } = useDateRange();
+  
+  const isMobile = useIsMobile();
 
   const [isOpen, setIsOpen] = useState(false);
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(customStartDate);
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(customEndDate);
+
+  // Sync temporary dates when context values change or popover opens
+  useEffect(() => {
+    if (isOpen) {
+      setTempStartDate(customStartDate);
+      setTempEndDate(customEndDate);
+    }
+  }, [isOpen, customStartDate, customEndDate]);
 
   const handleQuickRangeSelect = (range: "current-month" | "30-days" | "60-days" | "90-days") => {
     setDateRange(range);
@@ -58,7 +69,7 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
         <Button
           variant="outline"
           className={cn(
-            "justify-start text-left font-normal min-w-[240px]",
+            "justify-start text-left font-normal min-w-[200px] sm:min-w-[240px]",
             className
           )}
           data-testid="button-date-range-picker"
@@ -140,7 +151,7 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
                     setIsOpen(false);
                   }
                 }}
-                numberOfMonths={2}
+                numberOfMonths={isMobile ? 1 : 2}
                 data-testid="calendar-range-picker"
               />
             </div>

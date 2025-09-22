@@ -199,13 +199,13 @@ function HistoryContent() {
         {/* Filters and Search */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <span className="flex items-center space-x-2">
                 <Filter className="h-5 w-5" />
                 <span>Filters & Search</span>
               </span>
-              <div className="flex items-center space-x-2">
-                <DateRangePicker />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <DateRangePicker className="w-full sm:w-auto" />
                 <Button variant="outline" size="sm" onClick={clearFilters} data-testid="button-clear-filters">
                   Clear All
                 </Button>
@@ -257,9 +257,9 @@ function HistoryContent() {
               </Select>
 
               {/* Sort */}
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <Select value={sortBy} onValueChange={(value: "date" | "amount" | "category") => setSortBy(value)}>
-                  <SelectTrigger className="flex-1" data-testid="select-sort-by">
+                  <SelectTrigger className="w-full sm:flex-1" data-testid="select-sort-by">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -272,10 +272,11 @@ function HistoryContent() {
                   variant="outline"
                   size="sm"
                   onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                  className="px-3"
+                  className="w-full sm:w-auto sm:px-3"
                   data-testid="button-sort-order"
                 >
-                  <ArrowUpDown className="h-4 w-4" />
+                  <ArrowUpDown className="h-4 w-4 sm:mr-0 mr-2" />
+                  <span className="sm:hidden">{sortOrder === "asc" ? "Ascending" : "Descending"}</span>
                 </Button>
               </div>
             </div>
