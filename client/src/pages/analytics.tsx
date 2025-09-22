@@ -46,7 +46,9 @@ import type { Expense, Category, Partner } from "@shared/schema";
 
 function AnalyticsContent() {
   const [timeRange, setTimeRange] = useState("6months");
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
   const isMobile = useIsMobile();
   const { startDate, endDate, setCustomDateRange } = useDateRange();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -133,11 +135,14 @@ function AnalyticsContent() {
             return expenseDate >= monthStart && expenseDate <= monthEnd;
           });
 
-          const total = monthExpenses.reduce((sum: number, expense: Expense) => {
-            if (!expense || !expense.amount) return sum;
-            const amount = parseFloat(expense.amount);
-            return sum + (isNaN(amount) ? 0 : amount);
-          }, 0);
+          const total = monthExpenses.reduce(
+            (sum: number, expense: Expense) => {
+              if (!expense || !expense.amount) return sum;
+              const amount = parseFloat(expense.amount);
+              return sum + (isNaN(amount) ? 0 : amount);
+            },
+            0,
+          );
 
           months.push({
             period: current.toLocaleDateString("en-US", {
@@ -452,7 +457,10 @@ function AnalyticsContent() {
                       />
                       <Bar dataKey="spent" name="spent" radius={[2, 2, 0, 0]}>
                         {categoryComparison.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={entry?.spentColor} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry?.spentColor}
+                          />
                         ))}
                       </Bar>
                     </BarChart>
@@ -465,19 +473,19 @@ function AnalyticsContent() {
           {/* Sidebar */}
           <div className="space-y-6">
             <BudgetAlerts onCategorySelect={setSelectedCategory} />
+            {/* Category Expenses Detail - Shows when a category is selected */}
+            {selectedCategory && (
+              <div className="mt-6">
+                <CategoryExpenses
+                  category={selectedCategory}
+                  onClose={() => setSelectedCategory(null)}
+                />
+              </div>
+            )}
+
             <MonthlySummary />
           </div>
         </div>
-        
-        {/* Category Expenses Detail - Shows when a category is selected */}
-        {selectedCategory && (
-          <div className="mt-6">
-            <CategoryExpenses 
-              category={selectedCategory} 
-              onClose={() => setSelectedCategory(null)} 
-            />
-          </div>
-        )}
       </div>
 
       {/* Mobile Navigation */}
