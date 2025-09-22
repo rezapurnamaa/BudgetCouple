@@ -45,7 +45,41 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
 
   const handleQuickRangeSelect = (range: "current-month" | "30-days" | "60-days" | "90-days") => {
     setDateRange(range);
-    setIsOpen(false);
+    
+    // Update temp dates to reflect the quick selection so users can see it in the calendar and adjust if needed
+    const now = new Date();
+    let start: Date;
+    let end: Date;
+    
+    switch (range) {
+      case "current-month":
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        break;
+      case "30-days":
+        start = new Date(now);
+        start.setDate(now.getDate() - 30);
+        end = now;
+        break;
+      case "60-days":
+        start = new Date(now);
+        start.setDate(now.getDate() - 60);
+        end = now;
+        break;
+      case "90-days":
+        start = new Date(now);
+        start.setDate(now.getDate() - 90);
+        end = now;
+        break;
+      default:
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    }
+    
+    setTempStartDate(start);
+    setTempEndDate(end);
+    
+    // Don't close the popover immediately - let users adjust the dates if they want
   };
 
   const handleCustomRangeApply = () => {
