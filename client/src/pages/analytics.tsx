@@ -29,6 +29,7 @@ import {
 import { useState } from "react";
 import MonthlySummary from "@/components/monthly-summary";
 import BudgetAlerts from "@/components/budget-alerts";
+import CategoryExpenses from "@/components/category-expenses";
 import BottomNavigation from "@/components/bottom-navigation";
 import DesktopNavigation from "@/components/desktop-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -45,6 +46,7 @@ import type { Expense, Category, Partner } from "@shared/schema";
 
 function AnalyticsContent() {
   const [timeRange, setTimeRange] = useState("6months");
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const isMobile = useIsMobile();
   const { startDate, endDate, setCustomDateRange } = useDateRange();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -462,10 +464,20 @@ function AnalyticsContent() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <BudgetAlerts />
+            <BudgetAlerts onCategorySelect={setSelectedCategory} />
             <MonthlySummary />
           </div>
         </div>
+        
+        {/* Category Expenses Detail - Shows when a category is selected */}
+        {selectedCategory && (
+          <div className="mt-6">
+            <CategoryExpenses 
+              category={selectedCategory} 
+              onClose={() => setSelectedCategory(null)} 
+            />
+          </div>
+        )}
       </div>
 
       {/* Mobile Navigation */}

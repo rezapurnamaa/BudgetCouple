@@ -6,7 +6,11 @@ import type { Category, Expense } from "@shared/schema";
 import { useDateRange } from "@/contexts/date-range-context";
 import { format } from "date-fns";
 
-export default function BudgetAlerts() {
+interface BudgetAlertsProps {
+  onCategorySelect?: (category: Category) => void;
+}
+
+export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
   const { startDate, endDate, budgetMultiplier } = useDateRange();
   
   const { data: categories = [] } = useQuery<Category[]>({
@@ -119,11 +123,17 @@ export default function BudgetAlerts() {
         {alertsToShow.map((alert: any) => {
           const Icon = alert.icon;
           return (
-            <Alert key={alert.category.id} className={`
-              ${alert.alertType === 'danger' ? 'border-red-200 bg-red-50' : ''}
-              ${alert.alertType === 'warning' ? 'border-amber-200 bg-amber-50' : ''}
-              ${alert.alertType === 'info' ? 'border-blue-200 bg-blue-50' : ''}
-            `}>
+            <Alert 
+              key={alert.category.id} 
+              className={`
+                ${alert.alertType === 'danger' ? 'border-red-200 bg-red-50' : ''}
+                ${alert.alertType === 'warning' ? 'border-amber-200 bg-amber-50' : ''}
+                ${alert.alertType === 'info' ? 'border-blue-200 bg-blue-50' : ''}
+                ${onCategorySelect ? 'cursor-pointer hover:bg-opacity-80 transition-all duration-200' : ''}
+              `}
+              onClick={() => onCategorySelect?.(alert.category)}
+              data-testid={`alert-category-${alert.category.id}`}
+            >
               <div className="flex items-start space-x-3">
                 <div className="flex items-center space-x-2">
                   <span className="text-lg">{alert.category.emoji}</span>
@@ -141,6 +151,9 @@ export default function BudgetAlerts() {
                   </div>
                   <AlertDescription className="text-xs">
                     {alert.message}
+                    {onCategorySelect && (
+                      <span className="ml-1 text-blue-600">Click to view expenses →</span>
+                    )}
                   </AlertDescription>
                 </div>
               </div>
