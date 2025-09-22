@@ -175,12 +175,17 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
                 onSelect={(range) => {
                   if (range?.from) {
                     setTempStartDate(range.from);
+                    // Clear end date when selecting a new start date
+                    if (!range?.to) {
+                      setTempEndDate(undefined);
+                    }
                   }
                   if (range?.to) {
                     setTempEndDate(range.to);
                   }
-                  // Auto-apply when both dates are selected
-                  if (range?.from && range?.to) {
+                  // Only auto-apply when user has selected both start and end in this interaction
+                  // (both from and to exist, and this is a complete range selection)
+                  if (range?.from && range?.to && range.from <= range.to) {
                     setCustomDateRange(range.from, range.to);
                     setIsOpen(false);
                   }
