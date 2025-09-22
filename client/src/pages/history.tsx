@@ -313,30 +313,30 @@ function HistoryContent() {
                   const expenseDate = expense.date ? new Date(expense.date) : null;
                   
                   return (
-                    <div key={expense.id || index} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3 flex-1">
+                    <div key={expense.id || index} className="border border-border rounded-lg p-3 sm:p-4 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
                           {category && (
-                            <div className="text-2xl">{category.emoji}</div>
+                            <div className="text-xl sm:text-2xl flex-shrink-0">{category.emoji}</div>
                           )}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-foreground truncate">
                               {expense.description || "No description"}
                             </p>
-                            <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-1">
                               {expenseDate && isValid(expenseDate) && (
-                                <span className="flex items-center space-x-1">
+                                <span className="flex items-center space-x-1 flex-shrink-0">
                                   <CalendarIcon className="h-3 w-3" />
                                   <span>{format(expenseDate, 'MMM d, yyyy')}</span>
                                 </span>
                               )}
                               {category && (
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge variant="secondary" className="text-xs flex-shrink-0">
                                   {category.name}
                                 </Badge>
                               )}
                               {partner && (
-                                <span className="flex items-center space-x-1">
+                                <span className="flex items-center space-x-1 flex-shrink-0">
                                   <User className="h-3 w-3" />
                                   <span>{partner.name}</span>
                                 </span>
@@ -344,8 +344,8 @@ function HistoryContent() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-foreground">
+                        <div className="flex-shrink-0 text-right min-w-[80px]">
+                          <p className="text-sm sm:text-lg font-semibold text-foreground">
                             €{parseFloat(expense.amount || "0").toFixed(2)}
                           </p>
                         </div>
