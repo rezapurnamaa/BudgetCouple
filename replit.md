@@ -81,3 +81,9 @@ Preferred communication style: Simple, everyday language.
 - **date-fns**: Date manipulation and formatting
 - **clsx & tailwind-merge**: Conditional CSS class handling
 - **class-variance-authority**: Component variant management
+
+# Recent Changes
+
+## September 2025
+- **Interactive Analytics**: Added category expense drill-down feature - users can click on budget alerts to view detailed expenses for specific categories
+- **Date Picker Improvements**: Fixed mobile responsiveness and selection behavior in date range pickers
