@@ -579,13 +579,25 @@ export default function BulkAdd() {
                           </TableCell>
 
                           <TableCell>
-                            <Input
-                              {...form.register(`expenses.${index}.sourceLabel`)}
-                              placeholder="Optional"
-                              className="w-[120px]"
+                            <Select
+                              value={form.watch(`expenses.${index}.sourceLabel`) || "none"}
+                              onValueChange={(value) => form.setValue(`expenses.${index}.sourceLabel`, value === "none" ? "" : value)}
                               disabled={status === 'success'}
-                              data-testid={`input-source-${index}`}
-                            />
+                            >
+                              <SelectTrigger className="w-[120px]" data-testid={`select-source-${index}`}>
+                                <SelectValue placeholder="Source" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                <SelectItem value="AMEX">AMEX</SelectItem>
+                                <SelectItem value="DKB">DKB Bank</SelectItem>
+                                <SelectItem value="Chase">Chase Bank</SelectItem>
+                                <SelectItem value="PayPal">PayPal</SelectItem>
+                                <SelectItem value="Cash">Cash</SelectItem>
+                                <SelectItem value="Other Card">Other Card</SelectItem>
+                                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </TableCell>
 
                           <TableCell>
