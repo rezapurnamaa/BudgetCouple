@@ -28,7 +28,7 @@ export default function DesktopNavigation() {
   };
 
   return (
-    <nav className="hidden lg:flex items-center space-x-1">
+    <nav className="nav-container-desktop">
       {navigationItems.map((item) => {
         const Icon = item.icon;
         const isActive = location === item.path;
@@ -37,10 +37,10 @@ export default function DesktopNavigation() {
           <Button
             key={item.path}
             variant={isActive ? "default" : "ghost"}
-            className="flex items-center space-x-2"
+            className="nav-button-desktop"
             onClick={() => setLocation(item.path)}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="nav-icon-desktop" />
             <span>{item.label}</span>
           </Button>
         );
@@ -50,10 +50,10 @@ export default function DesktopNavigation() {
       {location === "/" && (
         <Button
           variant="outline"
-          className="flex items-center space-x-2 ml-4"
+          className="nav-button-desktop nav-quick-add"
           onClick={scrollToQuickAdd}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="nav-icon-desktop" />
           <span>Quick Add</span>
         </Button>
       )}

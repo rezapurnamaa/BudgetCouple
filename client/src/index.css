@@ -103,11 +103,19 @@
 }
 
 .nav-button-active-desktop {
-  @apply text-primary bg-primary text-primary-foreground hover:bg-primary/90;
+  @apply bg-primary text-primary-foreground;
+}
+
+.nav-button-active-desktop:hover {
+  opacity: 0.9;
 }
 
 .nav-button-inactive-desktop {
-  @apply text-muted-foreground hover:bg-accent hover:text-accent-foreground;
+  @apply text-muted-foreground;
+}
+
+.nav-button-inactive-desktop:hover {
+  @apply bg-accent text-accent-foreground;
 }
 
 .nav-button-active-mobile {

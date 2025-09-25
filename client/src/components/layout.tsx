@@ -21,7 +21,7 @@ export default function Layout({ children, title, description }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border sticky top-0 z-50">
+      <header className="nav-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -37,14 +37,14 @@ export default function Layout({ children, title, description }: LayoutProps) {
               <DesktopNavigation />
 
               {/* Partner indicators */}
-              <div className="flex items-center space-x-2">
+              <div className="partner-indicator-container">
                 {partners.map((partner: any) => (
-                  <div key={partner.id} className="flex items-center space-x-1">
+                  <div key={partner.id} className="partner-indicator-item">
                     <div
-                      className="w-3 h-3 rounded-full"
+                      className="partner-indicator-dot"
                       style={{ backgroundColor: partner.color }}
                     />
-                    <span className="text-sm text-muted-foreground">
+                    <span className="partner-indicator-name">
                       {partner.name}
                     </span>
                   </div>
@@ -56,13 +56,13 @@ export default function Layout({ children, title, description }: LayoutProps) {
       </header>
 
       {/* Page Title Section */}
-      <div className="bg-white border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-page-title">
+      <div className="page-title-section">
+        <div className="page-title-container">
+          <h1 className="page-title" data-testid="text-page-title">
             {title}
           </h1>
           {description && (
-            <p className="text-gray-600 dark:text-gray-400 mt-2" data-testid="text-page-description">
+            <p className="page-description" data-testid="text-page-description">
               {description}
             </p>
           )}
@@ -70,7 +70,7 @@ export default function Layout({ children, title, description }: LayoutProps) {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="main-content">
         {children}
       </main>
 

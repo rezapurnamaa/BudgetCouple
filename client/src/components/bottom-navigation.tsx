@@ -37,7 +37,7 @@ export default function BottomNavigation() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border px-4 py-2 pb-safe z-50">
+    <nav className="nav-container-mobile">
       <div className="flex justify-between">
         {/* Primary Navigation Items */}
         {primaryItems.map((item) => {
@@ -49,11 +49,11 @@ export default function BottomNavigation() {
             <Button
               key={item.id}
               variant={isAddButton ? "default" : "ghost"}
-              className={`flex flex-col items-center py-2 px-2 ${
+              className={`nav-button-mobile ${
                 isAddButton ? "rounded-lg" : ""
               } ${
-                isActive && !isAddButton ? "text-primary" : 
-                !isActive && !isAddButton ? "text-muted-foreground hover:text-foreground" : ""
+                isActive && !isAddButton ? "nav-button-active-mobile" : 
+                !isActive && !isAddButton ? "nav-button-inactive-mobile" : ""
               }`}
               onClick={() => {
                 if (isAddButton) {
@@ -64,8 +64,8 @@ export default function BottomNavigation() {
               }}
               data-testid={`nav-${item.id}`}
             >
-              <Icon className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className="nav-icon-mobile" />
+              <span className="nav-label-mobile">{item.label}</span>
             </Button>
           );
         })}
