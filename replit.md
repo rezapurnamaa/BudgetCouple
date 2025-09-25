@@ -85,5 +85,6 @@ Preferred communication style: Simple, everyday language.
 # Recent Changes
 
 ## September 2025
+- **Bulk Expense Addition**: Created dedicated bulk-add page for adding multiple expenses at once with table interface, defaults, validation, individual saves, and retry functionality for weekly expense catch-ups
 - **Interactive Analytics**: Added category expense drill-down feature - users can click on budget alerts to view detailed expenses for specific categories
 - **Date Picker Improvements**: Fixed mobile responsiveness and selection behavior in date range pickers
