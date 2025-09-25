@@ -29,26 +29,25 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { insertExpenseSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAmount, toISODate } from "@/lib/expense-utils";
 import { z } from "zod";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const formSchema = insertExpenseSchema
-  .omit({ date: true })
-  .extend({
-    amount: z
-      .string()
-      .min(1, "Amount is required")
-      .regex(
-        /^-?[0-9]+([.,][0-9]{1,2})?$/,
-        "Please enter a valid amount (e.g., 10.50, -5.00 for refunds)",
-      ),
-    description: z.string().min(1, "Description is required"),
-    categoryId: z.string().min(1, "Please select a category"),
-    partnerId: z.string().min(1, "Please select who paid"),
-    date: z.date(),
-  });
+const formSchema = insertExpenseSchema.omit({ date: true }).extend({
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .regex(
+      /^-?[0-9]+([.,][0-9]{1,2})?$/,
+      "Please enter a valid amount (e.g., 10.50, -5.00 for refunds)",
+    ),
+  description: z.string().min(1, "Description is required"),
+  categoryId: z.string().min(1, "Please select a category"),
+  partnerId: z.string().min(1, "Please select who paid"),
+  date: z.date(),
+});
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -81,12 +80,12 @@ export default function QuickAddExpense() {
   const createExpenseMutation = useMutation({
     mutationFn: async (data: FormData) => {
       // Handle comma as decimal separator and preserve sign for refunds
-      const normalizedAmount = data.amount.replace(",", ".");
+      const normalizedAmount = normalizeAmount(data.amount);
       const parsedAmount = parseFloat(normalizedAmount);
       const expenseData = {
         ...data,
         amount: parsedAmount.toFixed(2), // Keep the sign for negative amounts (refunds)
-        date: data.date ? data.date.toISOString().split("T")[0] : new Date().toISOString().split("T")[0], // Convert Date object to YYYY-MM-DD string
+        date: toISODate(data.date),
       };
       return apiRequest("/api/expenses", {
         method: "POST",
@@ -156,14 +155,17 @@ export default function QuickAddExpense() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Date</FormLabel>
-                  <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                  <Popover
+                    open={datePickerOpen}
+                    onOpenChange={setDatePickerOpen}
+                  >
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
                           variant="outline"
                           className={cn(
                             "w-full justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
+                            !field.value && "text-muted-foreground",
                           )}
                           data-testid="button-date-picker"
                         >
@@ -199,6 +201,20 @@ export default function QuickAddExpense() {
 
             <FormField
               control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Enter description" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem>
@@ -215,25 +231,14 @@ export default function QuickAddExpense() {
                         className="pl-8"
                         onChange={(e) => {
                           // Allow numbers, dots, commas, and minus sign
-                          const value = e.target.value.replace(/[^0-9.,-]/g, "");
+                          const value = e.target.value.replace(
+                            /[^0-9.,-]/g,
+                            "",
+                          );
                           field.onChange(value);
                         }}
                       />
                     </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter description" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -286,7 +291,9 @@ export default function QuickAddExpense() {
                       <SelectItem value="PayPal">PayPal</SelectItem>
                       <SelectItem value="Cash">Cash</SelectItem>
                       <SelectItem value="Other Card">Other Card</SelectItem>
-                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Bank Transfer">
+                        Bank Transfer
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

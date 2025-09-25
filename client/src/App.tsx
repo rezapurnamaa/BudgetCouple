@@ -9,6 +9,7 @@ import History from "@/pages/history";
 import Upload from "@/pages/upload";
 import Statements from "@/pages/statements";
 import Settings from "@/pages/settings";
+import BulkAdd from "@/pages/bulk-add";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/history" component={History} />
       <Route path="/upload" component={Upload} />
       <Route path="/statements" component={Statements} />
+      <Route path="/bulk-add" component={BulkAdd} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>

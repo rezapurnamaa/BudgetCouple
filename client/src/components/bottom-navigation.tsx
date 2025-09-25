@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Home, BarChart3, Plus, List, Upload, Settings, FileText, Menu, X } from "lucide-react";
+import { Home, BarChart3, Plus, List, Upload, Settings, FileText, Menu, X, PlusSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLocation } from "wouter";
@@ -20,6 +20,7 @@ export default function BottomNavigation() {
   const secondaryItems = [
     { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
     { path: "/upload", icon: Upload, label: "Upload", id: "upload" },
+    { path: "/bulk-add", icon: PlusSquare, label: "Bulk Add", id: "bulk-add" },
     { path: "/settings", icon: Settings, label: "Settings", id: "settings" },
   ];
 

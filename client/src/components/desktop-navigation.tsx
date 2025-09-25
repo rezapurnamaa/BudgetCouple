@@ -1,4 +1,4 @@
-import { Home, BarChart3, Plus, List, Upload, Settings, FileText } from "lucide-react";
+import { Home, BarChart3, Plus, List, Upload, Settings, FileText, PlusSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 
@@ -11,6 +11,7 @@ export default function DesktopNavigation() {
     { path: "/history", icon: List, label: "History" },
     { path: "/upload", icon: Upload, label: "Upload" },
     { path: "/statements", icon: FileText, label: "Statements" },
+    { path: "/bulk-add", icon: PlusSquare, label: "Bulk Add" },
     { path: "/settings", icon: Settings, label: "Settings" },
   ];
 
