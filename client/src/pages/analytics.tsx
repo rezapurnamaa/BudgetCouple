@@ -30,9 +30,7 @@ import { useState } from "react";
 import MonthlySummary from "@/components/monthly-summary";
 import BudgetAlerts from "@/components/budget-alerts";
 import CategoryExpenses from "@/components/category-expenses";
-import BottomNavigation from "@/components/bottom-navigation";
-import DesktopNavigation from "@/components/desktop-navigation";
-import { useIsMobile } from "@/hooks/use-mobile";
+import Layout from "@/components/layout";
 import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +47,6 @@ function AnalyticsContent() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
-  const isMobile = useIsMobile();
   const { startDate, endDate, setCustomDateRange } = useDateRange();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -187,101 +184,91 @@ function AnalyticsContent() {
     .filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <PieChartIcon className="text-primary-foreground text-sm" />
-              </div>
-              <h1 className="text-xl font-semibold text-foreground">
-                Analytics
-              </h1>
+    <div className="space-y-6">
+      {/* Date Range Controls - Sub Navigation */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+            <div className="flex items-center space-x-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Filter by date range:</span>
             </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Quick Preset Buttons */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const end = new Date();
+                  const start = subDays(end, 6);
+                  setCustomDateRange(start, end);
+                }}
+              >
+                7 days
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const end = new Date();
+                  const start = subDays(end, 29);
+                  setCustomDateRange(start, end);
+                }}
+              >
+                30 days
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const end = endOfMonth(new Date());
+                  const start = startOfMonth(new Date());
+                  setCustomDateRange(start, end);
+                }}
+              >
+                This month
+              </Button>
 
-            <div className="flex items-center space-x-4">
-              <DesktopNavigation />
-
-              {/* Date Range Controls */}
-              <div className="flex items-center space-x-2">
-                {/* Quick Preset Buttons */}
-                <div className="hidden sm:flex items-center space-x-1">
+              {/* Custom Date Range Picker */}
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      const end = new Date();
-                      const start = subDays(end, 6);
-                      setCustomDateRange(start, end);
-                    }}
+                    className="flex items-center space-x-2"
                   >
-                    7 days
+                    <CalendarDays className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                      {format(startDate, "MMM d")} -{" "}
+                      {format(endDate, "MMM d, yyyy")}
+                    </span>
+                    <span className="sm:hidden">
+                      {format(startDate, "M/d")} - {format(endDate, "M/d")}
+                    </span>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const end = new Date();
-                      const start = subDays(end, 29);
-                      setCustomDateRange(start, end);
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="range"
+                    defaultMonth={startDate}
+                    selected={{ from: startDate, to: endDate }}
+                    onSelect={(range) => {
+                      if (range?.from && range?.to) {
+                        setCustomDateRange(range.from, range.to);
+                        setIsCalendarOpen(false);
+                      }
                     }}
-                  >
-                    30 days
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const end = endOfMonth(new Date());
-                      const start = startOfMonth(new Date());
-                      setCustomDateRange(start, end);
-                    }}
-                  >
-                    This month
-                  </Button>
-                </div>
-
-                {/* Custom Date Range Picker */}
-                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex items-center space-x-2"
-                    >
-                      <CalendarDays className="h-4 w-4" />
-                      <span className="hidden sm:inline">
-                        {format(startDate, "MMM d")} -{" "}
-                        {format(endDate, "MMM d, yyyy")}
-                      </span>
-                      <span className="sm:hidden">
-                        {format(startDate, "M/d")} - {format(endDate, "M/d")}
-                      </span>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="range"
-                      defaultMonth={startDate}
-                      selected={{ from: startDate, to: endDate }}
-                      onSelect={(range) => {
-                        if (range?.from && range?.to) {
-                          setCustomDateRange(range.from, range.to);
-                          setIsCalendarOpen(false);
-                        }
-                      }}
-                      numberOfMonths={2}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
-        </div>
-      </header>
+        </CardContent>
+      </Card>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Charts Section */}
           <div className="lg:col-span-2 space-y-6">
@@ -487,9 +474,6 @@ function AnalyticsContent() {
           </div>
         </div>
       </div>
-
-      {/* Mobile Navigation */}
-      {isMobile && <BottomNavigation />}
     </div>
   );
 }
@@ -497,7 +481,12 @@ function AnalyticsContent() {
 export default function Analytics() {
   return (
     <DateRangeProvider>
-      <AnalyticsContent />
+      <Layout 
+        title="Analytics" 
+        description="Analyze your spending patterns and track budget performance"
+      >
+        <AnalyticsContent />
+      </Layout>
     </DateRangeProvider>
   );
 }
