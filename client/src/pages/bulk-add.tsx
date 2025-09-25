@@ -44,6 +44,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Layout from "@/components/layout";
 import type { Category, Partner } from "@shared/schema";
 
 // Schema for individual bulk expense items
@@ -80,7 +81,7 @@ interface ExpenseSubmissionResult {
   error?: string;
 }
 
-export default function BulkAdd() {
+function BulkAddContent() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [submissionResults, setSubmissionResults] = useState<Record<string, ExpenseSubmissionResult>>({});
@@ -287,15 +288,7 @@ export default function BulkAdd() {
   const successCount = Object.values(submissionResults).filter(r => r.status === 'success').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 lg:pb-0">
-      <div className="container mx-auto p-4 max-w-7xl">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bulk Add Expenses</h1>
-          <p className="text-gray-600">Add multiple expenses at once for weekly catch-ups</p>
-        </div>
-
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Defaults Header */}
           <Card>
             <CardHeader>
@@ -658,9 +651,17 @@ export default function BulkAdd() {
               </div>
             </CardContent>
           </Card>
-        </form>
-      </div>
+    </form>
+  );
+}
 
-    </div>
+export default function BulkAdd() {
+  return (
+    <Layout 
+      title="Bulk Add Expenses" 
+      description="Add multiple expenses at once for quick catch-up on your spending"
+    >
+      <BulkAddContent />
+    </Layout>
   );
 }
