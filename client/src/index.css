@@ -77,6 +77,99 @@
 .category-housing { --color: hsl(162, 73%, 46%); }
 .category-other { --color: hsl(220, 9%, 46%); }
 
+/* Navigation Unified Styles */
+.nav-header {
+  @apply bg-white shadow-sm border-b border-border sticky top-0 z-50;
+}
+
+.nav-container-desktop {
+  @apply hidden lg:flex items-center space-x-1;
+}
+
+.nav-container-mobile {
+  @apply lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border px-4 py-2 pb-safe z-50;
+}
+
+.nav-button-base {
+  @apply flex items-center transition-colors;
+}
+
+.nav-button-desktop {
+  @apply nav-button-base space-x-2;
+}
+
+.nav-button-mobile {
+  @apply nav-button-base flex-col py-2 px-2;
+}
+
+.nav-button-active-desktop {
+  @apply text-primary bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+.nav-button-inactive-desktop {
+  @apply text-muted-foreground hover:bg-accent hover:text-accent-foreground;
+}
+
+.nav-button-active-mobile {
+  @apply text-primary;
+}
+
+.nav-button-inactive-mobile {
+  @apply text-muted-foreground hover:text-foreground;
+}
+
+.nav-icon-desktop {
+  @apply h-4 w-4;
+}
+
+.nav-icon-mobile {
+  @apply h-5 w-5 mb-1;
+}
+
+.nav-label-mobile {
+  @apply text-xs font-medium;
+}
+
+.nav-quick-add {
+  @apply ml-4;
+}
+
+.page-title-section {
+  @apply bg-white border-b border-border;
+}
+
+.page-title-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+}
+
+.page-title {
+  @apply text-3xl font-bold text-gray-900 dark:text-gray-100;
+}
+
+.page-description {
+  @apply text-gray-600 dark:text-gray-400 mt-2;
+}
+
+.partner-indicator-container {
+  @apply flex items-center space-x-2;
+}
+
+.partner-indicator-item {
+  @apply flex items-center space-x-1;
+}
+
+.partner-indicator-dot {
+  @apply w-3 h-3 rounded-full;
+}
+
+.partner-indicator-name {
+  @apply text-sm text-muted-foreground;
+}
+
+.main-content {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6;
+}
+
 /* iOS/iPad Safe Area Support */
 @supports (padding: max(0px)) {
   .pb-safe {
