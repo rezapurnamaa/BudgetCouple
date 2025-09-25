@@ -14,7 +14,7 @@ interface LayoutProps {
 export default function Layout({ children, title, description }: LayoutProps) {
   const isMobile = useIsMobile();
 
-  const { data: partners = [] } = useQuery({
+  const { data: partners = [] } = useQuery<any[]>({
     queryKey: ["/api/partners"],
   });
 
