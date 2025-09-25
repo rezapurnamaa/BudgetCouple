@@ -1,7 +1,24 @@
 import { useState } from "react";
-import { Home, BarChart3, Plus, List, Upload, Settings, FileText, Menu, X, PlusSquare } from "lucide-react";
+import {
+  Home,
+  BarChart3,
+  Plus,
+  List,
+  Upload,
+  Settings,
+  FileText,
+  Menu,
+  X,
+  PlusSquare,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useLocation } from "wouter";
 
 export default function BottomNavigation() {
@@ -11,25 +28,39 @@ export default function BottomNavigation() {
   // Primary navigation items (visible in bottom nav)
   const primaryItems = [
     { path: "/", icon: Home, label: "Home", id: "home" },
-    { path: "/history", icon: List, label: "History", id: "history" },
+    {
+      path: "/analytics",
+      icon: BarChart3,
+      label: "Analytics",
+      id: "analytics",
+    },
     { path: "#add", icon: Plus, label: "Add", isAction: true, id: "add" },
-    { path: "/statements", icon: FileText, label: "Statements", id: "statements" },
+    {
+      path: "/statements",
+      icon: FileText,
+      label: "Statements",
+      id: "statements",
+    },
   ];
 
   // Secondary navigation items (in hamburger menu)
   const secondaryItems = [
-    { path: "/analytics", icon: BarChart3, label: "Analytics", id: "analytics" },
+    { path: "/history", icon: List, label: "History", id: "history" },
     { path: "/upload", icon: Upload, label: "Upload", id: "upload" },
     { path: "/bulk-add", icon: PlusSquare, label: "Bulk Add", id: "bulk-add" },
     { path: "/settings", icon: Settings, label: "Settings", id: "settings" },
   ];
 
   const scrollToQuickAdd = () => {
-    const quickAddElement = document.querySelector('[data-testid="quick-add-expense"]');
+    const quickAddElement = document.querySelector(
+      '[data-testid="quick-add-expense"]',
+    );
     if (quickAddElement) {
-      quickAddElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      quickAddElement.scrollIntoView({ behavior: "smooth", block: "center" });
       // Focus the amount input
-      const amountInput = quickAddElement.querySelector('input[type="text"]') as HTMLInputElement;
+      const amountInput = quickAddElement.querySelector(
+        'input[type="text"]',
+      ) as HTMLInputElement;
       if (amountInput) {
         setTimeout(() => amountInput.focus(), 100);
       }
@@ -44,7 +75,7 @@ export default function BottomNavigation() {
           const Icon = item.icon;
           const isActive = location === item.path;
           const isAddButton = item.isAction;
-          
+
           return (
             <Button
               key={item.id}
@@ -52,8 +83,11 @@ export default function BottomNavigation() {
               className={`nav-button-mobile ${
                 isAddButton ? "rounded-lg" : ""
               } ${
-                isActive && !isAddButton ? "nav-button-active-mobile" : 
-                !isActive && !isAddButton ? "nav-button-inactive-mobile" : ""
+                isActive && !isAddButton
+                  ? "nav-button-active-mobile"
+                  : !isActive && !isAddButton
+                    ? "nav-button-inactive-mobile"
+                    : ""
               }`}
               onClick={() => {
                 if (isAddButton) {
@@ -69,7 +103,7 @@ export default function BottomNavigation() {
             </Button>
           );
         })}
-        
+
         {/* Hamburger Menu */}
         <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <SheetTrigger asChild>
@@ -90,7 +124,7 @@ export default function BottomNavigation() {
               {secondaryItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location === item.path;
-                
+
                 return (
                   <Button
                     key={item.id}
