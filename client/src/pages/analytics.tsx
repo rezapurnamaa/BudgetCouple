@@ -193,7 +193,7 @@ function AnalyticsContent() {
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Filter by date range:</span>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-2">
               {/* Quick Preset Buttons */}
               <Button
@@ -455,21 +455,24 @@ function AnalyticsContent() {
                 </div>
               </CardContent>
             </Card>
+            <Card>
+              <CardContent>
+                {/* Category Expenses Detail - Shows when a category is selected */}
+                {selectedCategory && (
+                  <div className="mt-6">
+                    <CategoryExpenses
+                      category={selectedCategory}
+                      onClose={() => setSelectedCategory(null)}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             <BudgetAlerts onCategorySelect={setSelectedCategory} />
-            {/* Category Expenses Detail - Shows when a category is selected */}
-            {selectedCategory && (
-              <div className="mt-6">
-                <CategoryExpenses
-                  category={selectedCategory}
-                  onClose={() => setSelectedCategory(null)}
-                />
-              </div>
-            )}
-
             <MonthlySummary />
           </div>
         </div>
@@ -481,8 +484,8 @@ function AnalyticsContent() {
 export default function Analytics() {
   return (
     <DateRangeProvider>
-      <Layout 
-        title="Analytics" 
+      <Layout
+        title="Analytics"
         description="Analyze your spending patterns and track budget performance"
       >
         <AnalyticsContent />
