@@ -455,24 +455,20 @@ function AnalyticsContent() {
                 </div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent>
-                {/* Category Expenses Detail - Shows when a category is selected */}
-                {selectedCategory && (
-                  <div className="mt-6">
-                    <CategoryExpenses
-                      category={selectedCategory}
-                      onClose={() => setSelectedCategory(null)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             <BudgetAlerts onCategorySelect={setSelectedCategory} />
+            
+            {/* Category Expenses Detail - Shows when a category is selected */}
+            {selectedCategory && (
+              <CategoryExpenses
+                category={selectedCategory}
+                onClose={() => setSelectedCategory(null)}
+              />
+            )}
+
             <MonthlySummary />
           </div>
         </div>
