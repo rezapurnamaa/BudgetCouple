@@ -458,14 +458,10 @@ function AnalyticsContent() {
             
             {/* Category Expenses Detail - Shows when a category is selected */}
             {selectedCategory && (
-              <Card>
-                <CardContent>
-                  <CategoryExpenses
-                    category={selectedCategory}
-                    onClose={() => setSelectedCategory(null)}
-                  />
-                </CardContent>
-              </Card>
+              <CategoryExpenses
+                category={selectedCategory}
+                onClose={() => setSelectedCategory(null)}
+              />
             )}
           </div>
 
