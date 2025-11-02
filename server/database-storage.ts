@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, inArray } from "drizzle-orm";
 import {
   categories,
   partners,
@@ -142,6 +142,12 @@ export class DatabaseStorage implements IStorage {
   async deleteExpense(id: string): Promise<boolean> {
     const result = await db.delete(expenses).where(eq(expenses.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async bulkDeleteExpenses(ids: string[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const result = await db.delete(expenses).where(inArray(expenses.id, ids));
+    return result.rowCount || 0;
   }
 
   // Statements

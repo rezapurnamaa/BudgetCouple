@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import DesktopNavigation from "@/components/desktop-navigation";
 import BottomNavigation from "@/components/bottom-navigation";
 import { useDateRange } from "@/contexts/date-range-context";
@@ -24,10 +35,13 @@ import {
   ChevronDown,
   Download,
   Eye,
-  Settings
+  Settings,
+  Trash2
 } from "lucide-react";
 import DateRangePicker from "@/components/date-range-picker";
 import { format, parseISO, isValid } from "date-fns";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 function HistoryContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,10 +50,15 @@ function HistoryContent() {
   const [sortBy, setSortBy] = useState<"date" | "amount" | "category">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedExpenseIds, setSelectedExpenseIds] = useState<Set<string>>(new Set());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const itemsPerPage = 20;
 
   const isMobile = useIsMobile();
   const { startDate, endDate } = useDateRange();
+  const { toast } = useToast();
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["/api/expenses"],
@@ -52,6 +71,94 @@ function HistoryContent() {
   const { data: partners = [] } = useQuery({
     queryKey: ["/api/partners"],
   });
+
+  // Delete single expense mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest(`/api/expenses/${id}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      toast({
+        title: "Expense deleted",
+        description: "The expense has been successfully deleted.",
+      });
+      setDeleteDialogOpen(false);
+      setExpenseToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete expense. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Bulk delete mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const response = await apiRequest("/api/expenses/bulk-delete", { method: "POST", body: { ids } });
+      return response as { deletedCount: number };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      toast({
+        title: "Expenses deleted",
+        description: `Successfully deleted ${data.deletedCount} expense${data.deletedCount !== 1 ? 's' : ''}.`,
+      });
+      setSelectedExpenseIds(new Set());
+      setBulkDeleteDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete expenses. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Selection handlers
+  const toggleExpenseSelection = (id: string) => {
+    setSelectedExpenseIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedExpenseIds.size === paginatedExpenses.length && paginatedExpenses.length > 0) {
+      setSelectedExpenseIds(new Set());
+    } else {
+      setSelectedExpenseIds(new Set(paginatedExpenses.map((e: any) => e.id)));
+    }
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setExpenseToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleBulkDeleteClick = () => {
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (expenseToDelete) {
+      deleteMutation.mutate(expenseToDelete);
+    }
+  };
+
+  const confirmBulkDelete = () => {
+    const idsArray = Array.from(selectedExpenseIds);
+    bulkDeleteMutation.mutate(idsArray);
+  };
 
   // Filter expenses by date range, search term, category, and partner
   const filteredExpenses = (expenses as any[]).filter((expense: any) => {
@@ -286,10 +393,32 @@ function HistoryContent() {
         {/* Expense List */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Transaction History</span>
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                {paginatedExpenses.length > 0 && (
+                  <div className="flex items-center">
+                    <Checkbox
+                      checked={selectedExpenseIds.size === paginatedExpenses.length && paginatedExpenses.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      data-testid="checkbox-select-all"
+                    />
+                  </div>
+                )}
+                <span>Transaction History</span>
+              </div>
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
+                {selectedExpenseIds.size > 0 && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={handleBulkDeleteClick}
+                    data-testid="button-bulk-delete"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete {selectedExpenseIds.size} {selectedExpenseIds.size === 1 ? 'expense' : 'expenses'}
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" data-testid="button-export">
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
@@ -311,10 +440,18 @@ function HistoryContent() {
                   const category = getCategory(expense.categoryId);
                   const partner = getPartner(expense.partnerId);
                   const expenseDate = expense.date ? new Date(expense.date) : null;
+                  const isSelected = selectedExpenseIds.has(expense.id);
                   
                   return (
                     <div key={expense.id || index} className="border border-border rounded-lg p-3 sm:p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
+                        <div className="flex-shrink-0">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleExpenseSelection(expense.id)}
+                            data-testid={`checkbox-expense-${expense.id}`}
+                          />
+                        </div>
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
                           {category && (
                             <div className="text-xl sm:text-2xl flex-shrink-0">{category.emoji}</div>
@@ -348,6 +485,16 @@ function HistoryContent() {
                           <p className="text-sm sm:text-lg font-semibold text-foreground">
                             €{parseFloat(expense.amount || "0").toFixed(2)}
                           </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(expense.id)}
+                            data-testid={`button-delete-${expense.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -391,6 +538,50 @@ function HistoryContent() {
 
       {/* Mobile Navigation */}
       {isMobile && <BottomNavigation />}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this expense? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Multiple Expenses</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedExpenseIds.size} expense{selectedExpenseIds.size !== 1 ? 's' : ''}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-bulk-delete"
+            >
+              Delete {selectedExpenseIds.size} expense{selectedExpenseIds.size !== 1 ? 's' : ''}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
