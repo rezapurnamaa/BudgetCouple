@@ -212,6 +212,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/expenses/bulk-delete", async (req, res) => {
+    try {
+      const { ids } = req.body;
+      
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ message: "Invalid request: ids array is required" });
+      }
+      
+      const deletedCount = await storage.bulkDeleteExpenses(ids);
+      res.json({ deletedCount });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to bulk delete expenses" });
+    }
+  });
+
   // Statements
   app.get("/api/statements", async (req, res) => {
     try {

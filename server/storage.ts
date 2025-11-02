@@ -39,6 +39,7 @@ export interface IStorage {
     expense: Partial<InsertExpense>,
   ): Promise<Expense | undefined>;
   deleteExpense(id: string): Promise<boolean>;
+  bulkDeleteExpenses(ids: string[]): Promise<number>;
 
   // Statements
   getStatements(): Promise<Statement[]>;
@@ -632,6 +633,16 @@ export class MemStorage implements IStorage {
 
   async deleteExpense(id: string): Promise<boolean> {
     return this.expenses.delete(id);
+  }
+
+  async bulkDeleteExpenses(ids: string[]): Promise<number> {
+    let deletedCount = 0;
+    for (const id of ids) {
+      if (this.expenses.delete(id)) {
+        deletedCount++;
+      }
+    }
+    return deletedCount;
   }
 
   async getSpendingByCategory(): Promise<
