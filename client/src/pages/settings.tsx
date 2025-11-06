@@ -221,7 +221,7 @@ function SettingsContent() {
   const handleDeleteCategory = (category: Category) => {
     // Check if category is used in any expenses
     const hasExpenses = expenses.some((expense: any) => expense.categoryId === category.id);
-    
+
     if (hasExpenses) {
       toast({
         title: "Cannot Delete Category",
@@ -245,10 +245,10 @@ function SettingsContent() {
 
   // Get colors already used by existing categories
   const usedColors = new Set((categories as Category[]).map((cat) => cat.color));
-  
+
   // Available colors are those not already used
   const colorOptions = allColorOptions.filter(color => !usedColors.has(color));
-  
+
   // If no colors available, show all colors (in case user wants to reuse)
   const displayColorOptions = colorOptions.length > 0 ? colorOptions : allColorOptions;
 
@@ -264,7 +264,7 @@ function SettingsContent() {
               </div>
               <h1 className="text-xl font-semibold text-foreground">Settings</h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <DesktopNavigation />
             </div>
@@ -462,7 +462,7 @@ function SettingsContent() {
                           </div>
                         </DialogContent>
                         </Dialog>
-                        
+
                         <Button
                           variant="destructive"
                           size="sm"
