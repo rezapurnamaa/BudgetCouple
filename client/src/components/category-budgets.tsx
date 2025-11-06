@@ -5,6 +5,16 @@ import { useDateRange } from "@/contexts/date-range-context";
 import { format } from "date-fns";
 import type { Expense, Category, BudgetPeriod } from "@shared/schema";
 
+type CategoryWithBudget = Category & {
+  spent: number;
+  budget: number;
+  remaining: number;
+  percentage: number;
+  isOverBudget: boolean;
+  budgetSource: string;
+  usingBudgetPeriod: boolean;
+};
+
 export default function CategoryBudgets() {
   const { startDate, endDate, budgetMultiplier } = useDateRange();
   
@@ -21,7 +31,7 @@ export default function CategoryBudgets() {
   });
 
   // Calculate spending per category with date range filtering and budget period integration
-  const categorySpending = categories.map((category) => {
+  const categorySpending = categories.map((category): CategoryWithBudget | null => {
     if (!category) return null;
     
     // Filter expenses by selected date range
@@ -73,16 +83,8 @@ export default function CategoryBudgets() {
       isOverBudget: spent > budget && budget > 0,
       budgetSource,
       usingBudgetPeriod: !!activeBudgetPeriod,
-    };
-  }).filter((item): item is Category & {
-    spent: number;
-    budget: number;
-    remaining: number;
-    percentage: number;
-    isOverBudget: boolean;
-    budgetSource: string;
-    usingBudgetPeriod: boolean;
-  } => item !== null);
+    } as CategoryWithBudget;
+  }).filter((item): item is CategoryWithBudget => item !== null);
 
   return (
     <Card>
@@ -109,18 +111,18 @@ export default function CategoryBudgets() {
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      €{category.spent?.toFixed(2) || '0.00'} / €{category.budget?.toFixed(2) || '0.00'}
+                      €{category.spent.toFixed(2)} / €{category.budget.toFixed(2)}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   {category.isOverBudget ? (
                     <p className="text-sm font-medium text-red-600">
-                      €{Math.abs(category.remaining)?.toFixed(2) || '0.00'} over
+                      €{Math.abs(category.remaining).toFixed(2)} over
                     </p>
                   ) : (
                     <p className="text-sm font-medium text-green-600">
-                      €{category.remaining?.toFixed(2) || '0.00'} left
+                      €{category.remaining.toFixed(2)} left
                     </p>
                   )}
                 </div>
