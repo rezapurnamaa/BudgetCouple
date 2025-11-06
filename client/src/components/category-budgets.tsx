@@ -31,9 +31,9 @@ export default function CategoryBudgets() {
   });
 
   // Calculate spending per category with date range filtering and budget period integration
-  const categorySpending = categories.map((category): CategoryWithBudget | null => {
-    if (!category) return null;
-    
+  const categorySpending: CategoryWithBudget[] = categories
+    .filter((category): category is Category => category !== null && category !== undefined)
+    .map((category) => {
     // Filter expenses by selected date range
     const filteredExpenses = expenses.filter((expense) => {
       if (!expense?.date || expense.categoryId !== category.id) return false;
@@ -84,7 +84,7 @@ export default function CategoryBudgets() {
       budgetSource,
       usingBudgetPeriod: !!activeBudgetPeriod,
     } as CategoryWithBudget;
-  }).filter((item): item is CategoryWithBudget => item !== null);
+  });
 
   return (
     <Card>
@@ -96,7 +96,7 @@ export default function CategoryBudgets() {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {categorySpending.map((category) => (
+          {categorySpending.map((category: CategoryWithBudget) => (
             <div key={category.id}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">

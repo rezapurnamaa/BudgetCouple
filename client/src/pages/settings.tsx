@@ -157,7 +157,7 @@ function SettingsContent() {
 
   // Category mutations
   const addCategoryMutation = useMutation({
-    mutationFn: async (data: { name: string; emoji: string; color: string; monthlyBudget: number; includeInSpending: boolean }) =>
+    mutationFn: async (data: { name: string; emoji: string; color: string; monthlyBudget: number; includeInSpending: number }) =>
       apiRequest("/api/categories", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
@@ -401,7 +401,6 @@ function SettingsContent() {
                                 })
                               }
                               disabled={updateCategorySpendingMutation.isPending}
-                              size="sm"
                             />
                             <span className="text-xs text-muted-foreground">Include in spending</span>
                           </div>
