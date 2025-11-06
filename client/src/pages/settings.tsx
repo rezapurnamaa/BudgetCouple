@@ -214,7 +214,7 @@ function SettingsContent() {
       emoji: newCategoryEmoji,
       color: newCategoryColor,
       monthlyBudget: parseFloat(newCategoryBudget) || 0,
-      includeInSpending: newCategoryIncludeInSpending,
+      includeInSpending: newCategoryIncludeInSpending ? 1 : 0,
     });
   };
 
