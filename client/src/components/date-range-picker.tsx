@@ -4,6 +4,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useDateRange } from "@/contexts/date-range-context";
@@ -30,6 +31,8 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
   } = useDateRange();
   
   const isMobile = useIsMobile();
+  // Detect tablet and mobile - show single calendar for screens < 1024px
+  const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 1024;
 
   const [isOpen, setIsOpen] = useState(false);
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(customStartDate);
@@ -125,8 +128,13 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
           </Badge>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <div className="p-4 space-y-4">
+      <PopoverContent 
+        className="w-auto p-0" 
+        align={isSmallScreen ? "end" : "start"}
+        sideOffset={8}
+      >
+        <ScrollArea className="max-h-[85vh]">
+          <div className="p-4 space-y-4">
           <div>
             <Label className="text-sm font-medium">Quick Select</Label>
             <div className="grid grid-cols-2 gap-2 mt-2">
@@ -190,7 +198,7 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
                     setIsOpen(false);
                   }
                 }}
-                numberOfMonths={isMobile ? 1 : 2}
+                numberOfMonths={isSmallScreen ? 1 : 2}
                 data-testid="calendar-range-picker"
               />
             </div>
@@ -220,6 +228,7 @@ export default function DateRangePicker({ className }: DateRangePickerProps) {
             )}
           </div>
         </div>
+        </ScrollArea>
       </PopoverContent>
     </Popover>
   );

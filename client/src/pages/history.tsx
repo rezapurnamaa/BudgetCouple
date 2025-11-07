@@ -47,6 +47,7 @@ function HistoryContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedPartner, setSelectedPartner] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "amount" | "category">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,7 +161,14 @@ function HistoryContent() {
     bulkDeleteMutation.mutate(idsArray);
   };
 
-  // Filter expenses by date range, search term, category, and partner
+  // Get unique source labels for filter dropdown
+  const uniqueSources = Array.from(new Set(
+    (expenses as any[])
+      .map((e: any) => e.sourceLabel)
+      .filter(Boolean)
+  )).sort();
+
+  // Filter expenses by date range, search term, category, partner, and source
   const filteredExpenses = (expenses as any[]).filter((expense: any) => {
     if (!expense || !expense.date) return false;
     
@@ -173,8 +181,9 @@ function HistoryContent() {
     
     const matchesCategory = selectedCategory === "all" || expense.categoryId === selectedCategory;
     const matchesPartner = selectedPartner === "all" || expense.partnerId === selectedPartner;
+    const matchesSource = selectedSource === "all" || expense.sourceLabel === selectedSource;
     
-    return dateInRange && matchesSearch && matchesCategory && matchesPartner;
+    return dateInRange && matchesSearch && matchesCategory && matchesPartner && matchesSource;
   });
 
   // Sort expenses
@@ -233,6 +242,7 @@ function HistoryContent() {
     setSearchTerm("");
     setSelectedCategory("all");
     setSelectedPartner("all");
+    setSelectedSource("all");
     setSortBy("date");
     setSortOrder("desc");
     setCurrentPage(1);
@@ -320,9 +330,9 @@ function HistoryContent() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-4">
               {/* Search */}
-              <div className="relative">
+              <div className="relative lg:col-span-2 xl:col-span-1">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search description or amount..."
@@ -363,8 +373,23 @@ function HistoryContent() {
                 </SelectContent>
               </Select>
 
+              {/* Source Filter */}
+              <Select value={selectedSource} onValueChange={setSelectedSource}>
+                <SelectTrigger data-testid="select-source-filter">
+                  <SelectValue placeholder="All Sources" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  {uniqueSources.map((source: string) => (
+                    <SelectItem key={source} value={source}>
+                      {source}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               {/* Sort */}
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 lg:col-span-2 xl:col-span-1">
                 <Select value={sortBy} onValueChange={(value: "date" | "amount" | "category") => setSortBy(value)}>
                   <SelectTrigger className="w-full sm:flex-1" data-testid="select-sort-by">
                     <SelectValue />
