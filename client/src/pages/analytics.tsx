@@ -60,9 +60,13 @@ function AnalyticsContent() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handleMonthSelect = (month: string) => {
-    const [year, monthNum] = month.split('-');
-    const monthStart = startOfMonth(new Date(parseInt(year), parseInt(monthNum) - 1, 1));
-    const monthEnd = endOfMonth(new Date(parseInt(year), parseInt(monthNum) - 1, 1));
+    const [year, monthNum] = month.split("-");
+    const monthStart = startOfMonth(
+      new Date(parseInt(year), parseInt(monthNum) - 1, 1),
+    );
+    const monthEnd = endOfMonth(
+      new Date(parseInt(year), parseInt(monthNum) - 1, 1),
+    );
     setCustomDateRange(monthStart, monthEnd);
     setSelectedMonth(month);
     setIsMonthExpensesOpen(true);
@@ -290,6 +294,7 @@ function AnalyticsContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Charts Section */}
           <div className="lg:col-span-2 space-y-6">
+            <MonthlySummary onMonthSelect={handleMonthSelect} />
             {/* Monthly Spending Trend */}
             <Card>
               <CardHeader>
@@ -488,17 +493,27 @@ function AnalyticsContent() {
             {/* Monthly Expenses Detail - Shows when a month is selected */}
             {selectedMonth && (
               <Card>
-                <Collapsible open={isMonthExpensesOpen} onOpenChange={setIsMonthExpensesOpen}>
+                <Collapsible
+                  open={isMonthExpensesOpen}
+                  onOpenChange={setIsMonthExpensesOpen}
+                >
                   <CardHeader>
                     <CollapsibleTrigger asChild>
-                      <div className="flex items-center justify-between cursor-pointer" data-testid="button-toggle-month-expenses">
+                      <div
+                        className="flex items-center justify-between cursor-pointer"
+                        data-testid="button-toggle-month-expenses"
+                      >
                         <CardTitle className="flex items-center space-x-2">
                           <CalendarIcon className="h-5 w-5" />
                           <span>
-                            {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'long' 
-                            })} Expenses
+                            {new Date(selectedMonth + "-01").toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "long",
+                              },
+                            )}{" "}
+                            Expenses
                           </span>
                         </CardTitle>
                         {isMonthExpensesOpen ? (
@@ -524,9 +539,15 @@ function AnalyticsContent() {
                               return dateB - dateA;
                             })
                             .map((expense) => {
-                              const category = categories.find((c) => c.id === expense.categoryId);
-                              const partner = partners.find((p) => p.id === expense.partnerId);
-                              const expenseDate = expense.date ? new Date(expense.date) : null;
+                              const category = categories.find(
+                                (c) => c.id === expense.categoryId,
+                              );
+                              const partner = partners.find(
+                                (p) => p.id === expense.partnerId,
+                              );
+                              const expenseDate = expense.date
+                                ? new Date(expense.date)
+                                : null;
 
                               return (
                                 <div
@@ -536,20 +557,29 @@ function AnalyticsContent() {
                                 >
                                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                                     <div className="flex-shrink-0">
-                                      <span className="text-2xl">{category?.emoji || '📝'}</span>
+                                      <span className="text-2xl">
+                                        {category?.emoji || "📝"}
+                                      </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <p className="font-medium text-sm truncate">
-                                        {expense.description || 'No description'}
+                                        {expense.description ||
+                                          "No description"}
                                       </p>
                                       <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                        <span>{category?.name || 'Unknown'}</span>
+                                        <span>
+                                          {category?.name || "Unknown"}
+                                        </span>
                                         <span>•</span>
-                                        <span>{partner?.name || 'Unknown'}</span>
+                                        <span>
+                                          {partner?.name || "Unknown"}
+                                        </span>
                                         {expenseDate && (
                                           <>
                                             <span>•</span>
-                                            <span>{format(expenseDate, 'MMM d')}</span>
+                                            <span>
+                                              {format(expenseDate, "MMM d")}
+                                            </span>
                                           </>
                                         )}
                                       </div>
@@ -557,7 +587,10 @@ function AnalyticsContent() {
                                   </div>
                                   <div className="flex-shrink-0 text-right ml-4">
                                     <p className="font-semibold text-sm">
-                                      €{parseFloat(expense.amount || '0').toFixed(2)}
+                                      €
+                                      {parseFloat(
+                                        expense.amount || "0",
+                                      ).toFixed(2)}
                                     </p>
                                   </div>
                                 </div>
@@ -575,7 +608,6 @@ function AnalyticsContent() {
           {/* Sidebar */}
           <div className="space-y-6">
             <BudgetAlerts onCategorySelect={setSelectedCategory} />
-            <MonthlySummary onMonthSelect={handleMonthSelect} />
           </div>
         </div>
       </div>
