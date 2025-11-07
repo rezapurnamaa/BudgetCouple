@@ -5,8 +5,19 @@ import { Calendar, TrendingUp, TrendingDown } from "lucide-react";
 import { useState } from "react";
 import type { Expense, Category, Partner } from "@shared/schema";
 
-export default function MonthlySummary() {
+interface MonthlySummaryProps {
+  onMonthSelect?: (month: string) => void;
+}
+
+export default function MonthlySummary({ onMonthSelect }: MonthlySummaryProps) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+    if (onMonthSelect) {
+      onMonthSelect(month);
+    }
+  };
 
   const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
@@ -84,8 +95,8 @@ export default function MonthlySummary() {
             <Calendar className="h-5 w-5" />
             <span>Monthly Summary</span>
           </CardTitle>
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-auto">
+          <Select value={selectedMonth} onValueChange={handleMonthChange}>
+            <SelectTrigger className="w-auto" data-testid="select-month-summary">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

@@ -25,6 +25,8 @@ import {
   Users,
   PieChart as PieChartIcon,
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useState } from "react";
 import MonthlySummary from "@/components/monthly-summary";
@@ -33,6 +35,11 @@ import CategoryExpenses from "@/components/category-expenses";
 import Layout from "@/components/layout";
 import { DateRangeProvider, useDateRange } from "@/contexts/date-range-context";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Popover,
   PopoverContent,
@@ -47,8 +54,19 @@ function AnalyticsContent() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null,
   );
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [isMonthExpensesOpen, setIsMonthExpensesOpen] = useState(true);
   const { startDate, endDate, setCustomDateRange } = useDateRange();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const handleMonthSelect = (month: string) => {
+    const [year, monthNum] = month.split('-');
+    const monthStart = startOfMonth(new Date(parseInt(year), parseInt(monthNum) - 1, 1));
+    const monthEnd = endOfMonth(new Date(parseInt(year), parseInt(monthNum) - 1, 1));
+    setCustomDateRange(monthStart, monthEnd);
+    setSelectedMonth(month);
+    setIsMonthExpensesOpen(true);
+  };
 
   const { data: expenses = [] } = useQuery<Expense[]>({
     queryKey: ["/api/expenses"],
@@ -466,12 +484,98 @@ function AnalyticsContent() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Monthly Expenses Detail - Shows when a month is selected */}
+            {selectedMonth && (
+              <Card>
+                <Collapsible open={isMonthExpensesOpen} onOpenChange={setIsMonthExpensesOpen}>
+                  <CardHeader>
+                    <CollapsibleTrigger asChild>
+                      <div className="flex items-center justify-between cursor-pointer" data-testid="button-toggle-month-expenses">
+                        <CardTitle className="flex items-center space-x-2">
+                          <CalendarIcon className="h-5 w-5" />
+                          <span>
+                            {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'long' 
+                            })} Expenses
+                          </span>
+                        </CardTitle>
+                        {isMonthExpensesOpen ? (
+                          <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
+                  </CardHeader>
+                  <CollapsibleContent>
+                    <CardContent>
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {filteredExpenses.length === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            No expenses found for this month.
+                          </p>
+                        ) : (
+                          filteredExpenses
+                            .sort((a, b) => {
+                              const dateA = new Date(a.date || 0).getTime();
+                              const dateB = new Date(b.date || 0).getTime();
+                              return dateB - dateA;
+                            })
+                            .map((expense) => {
+                              const category = categories.find((c) => c.id === expense.categoryId);
+                              const partner = partners.find((p) => p.id === expense.partnerId);
+                              const expenseDate = expense.date ? new Date(expense.date) : null;
+
+                              return (
+                                <div
+                                  key={expense.id}
+                                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                                  data-testid={`expense-item-${expense.id}`}
+                                >
+                                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                                    <div className="flex-shrink-0">
+                                      <span className="text-2xl">{category?.emoji || '📝'}</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-sm truncate">
+                                        {expense.description || 'No description'}
+                                      </p>
+                                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                        <span>{category?.name || 'Unknown'}</span>
+                                        <span>•</span>
+                                        <span>{partner?.name || 'Unknown'}</span>
+                                        {expenseDate && (
+                                          <>
+                                            <span>•</span>
+                                            <span>{format(expenseDate, 'MMM d')}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex-shrink-0 text-right ml-4">
+                                    <p className="font-semibold text-sm">
+                                      €{parseFloat(expense.amount || '0').toFixed(2)}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })
+                        )}
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             <BudgetAlerts onCategorySelect={setSelectedCategory} />
-            <MonthlySummary />
+            <MonthlySummary onMonthSelect={handleMonthSelect} />
           </div>
         </div>
       </div>
