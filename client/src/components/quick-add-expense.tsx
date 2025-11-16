@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,6 +35,29 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const CATEGORY_USAGE_KEY = "categoryLastUsed";
+
+function getCategoryLastUsed(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = localStorage.getItem(CATEGORY_USAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+}
+
+function updateCategoryLastUsed(categoryId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const usage = getCategoryLastUsed();
+    usage[categoryId] = Date.now();
+    localStorage.setItem(CATEGORY_USAGE_KEY, JSON.stringify(usage));
+  } catch {
+    // Silent fail if localStorage is not available
+  }
+}
+
 const formSchema = insertExpenseSchema.omit({ date: true }).extend({
   amount: z
     .string()
@@ -56,10 +79,22 @@ export default function QuickAddExpense() {
   const queryClient = useQueryClient();
   const [selectedPartner, setSelectedPartner] = useState<string>("");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [categoryUsage, setCategoryUsage] = useState<Record<string, number>>(() => 
+    getCategoryLastUsed()
+  );
 
   const { data: categories = [] } = useQuery<any[]>({
     queryKey: ["/api/categories"],
   });
+
+  // Sort categories by last used
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const aTime = categoryUsage[a.id] || 0;
+      const bTime = categoryUsage[b.id] || 0;
+      return bTime - aTime; // Most recent first
+    });
+  }, [categories, categoryUsage]);
 
   const { data: partners = [] } = useQuery<any[]>({
     queryKey: ["/api/partners"],
@@ -251,14 +286,24 @@ export default function QuickAddExpense() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      updateCategoryLastUsed(value);
+                      setCategoryUsage((prev) => ({
+                        ...prev,
+                        [value]: Date.now(),
+                      }));
+                    }} 
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {sortedCategories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           <div className="flex items-center space-x-2">
                             <span>{category.emoji}</span>
