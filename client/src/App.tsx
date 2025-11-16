@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Switch, Route } from "wouter";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
@@ -38,14 +38,13 @@ function App() {
     return client;
   });
 
-  const [persister] = useState(() => 
-    typeof window !== 'undefined'
-      ? createSyncStoragePersister({
-          storage: window.localStorage,
-          key: 'COUPLE_FINANCE_CACHE',
-        })
-      : undefined
-  );
+  const persister = useMemo(() => {
+    if (typeof window === 'undefined') return undefined;
+    return createSyncStoragePersister({
+      storage: window.localStorage,
+      key: 'COUPLE_FINANCE_CACHE',
+    });
+  }, []);
 
   return (
     <PersistQueryClientProvider
