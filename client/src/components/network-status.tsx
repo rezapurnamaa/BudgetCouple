@@ -13,8 +13,8 @@ export default function NetworkStatus() {
   const [showReconnectedMessage, setShowReconnectedMessage] = useState(false);
   
   const allMutations = useMutationState();
-  const pausedMutations = allMutations.filter(m => m.state.isPaused);
-  const pendingMutations = allMutations.filter(m => m.state.status === 'pending');
+  const pausedMutations = allMutations.filter(m => m.state?.status === 'paused');
+  const pendingMutations = allMutations.filter(m => m.state?.status === 'pending');
 
   useEffect(() => {
     const handleOnline = () => {
