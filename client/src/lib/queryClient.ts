@@ -55,23 +55,14 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
-export function createQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        queryFn: getQueryFn({ on401: "throw" }),
-        refetchInterval: false,
-        refetchOnWindowFocus: false,
-        staleTime: 1000 * 60 * 5,
-        gcTime: 1000 * 60 * 60 * 24,
-        retry: 1,
-        networkMode: 'offlineFirst',
-        refetchOnReconnect: true,
-      },
-      mutations: {
-        retry: 1,
-        networkMode: 'offlineFirst',
-      },
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: getQueryFn({ on401: "throw" }),
+      refetchInterval: false,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
     },
-  });
-}
+  },
+});
