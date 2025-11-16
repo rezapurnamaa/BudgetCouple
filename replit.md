@@ -68,20 +68,6 @@ Preferred communication style: Simple, everyday language.
 ## Data Visualization
 - **Recharts**: React charting library for spending analytics and budget visualization
 
-## Offline-First Architecture (November 2025)
-- **Local Storage Persistence**: All data cached in localStorage for offline access using TanStack Query Persist Client
-- **Network Mode**: `offlineFirst` strategy allows app to work without internet connection
-- **Automatic Sync**: Mutations queued when offline and automatically synced when connection restored
-- **Smart Caching**: 24-hour cache duration (gcTime) with 5-minute stale time for all queries
-- **Mutation Defaults**: Pre-configured mutation functions for all CRUD operations to enable resumable offline mutations
-- **Network Status Indicator**: Three distinct visual states (offline, syncing, synced) with test IDs for QA automation
-  - Shows queued mutation count while offline
-  - Displays sync progress when reconnecting
-  - Shows success message after sync completes
-- **SSR-Safe Implementation**: All browser APIs (window, navigator, localStorage) properly guarded for SSR/test compatibility
-- **Persister Strategy**: useMemo-based persister initialization ensures proper hydration in SSR contexts
-- **Mutation Tracking**: Tracks both paused (offline) and pending (syncing) mutations for accurate UI feedback
-
 ## Development Tools
 - **Replit Integration**: Vite plugins for Replit development environment
 - **PostCSS**: CSS processing with Tailwind CSS and Autoprefixer
@@ -99,11 +85,10 @@ Preferred communication style: Simple, everyday language.
 # Recent Changes
 
 ## November 2025
-- **Offline-First Capabilities**: Implemented full offline support with local storage persistence
-  - App works without internet connection
-  - All data cached locally and synced automatically when reconnected
-  - Visual indicators for offline status and pending sync operations
-  - Mutation queue system ensures no data loss when offline
+- **Category Sorting by Last Used**: Quick add expense now sorts categories by most recently used
+  - Categories automatically reorder based on usage frequency
+  - Reduces scrolling when adding expenses
+  - Preference stored in localStorage and persists across sessions
 - **Interactive Month Selection**: Added month selector on analytics page
   - Click monthly summary dropdown to filter charts and expenses by specific month
   - Collapsible expense list shows all transactions for selected month
