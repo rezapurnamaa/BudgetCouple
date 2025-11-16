@@ -69,13 +69,18 @@ Preferred communication style: Simple, everyday language.
 - **Recharts**: React charting library for spending analytics and budget visualization
 
 ## Offline-First Architecture (November 2025)
-- **Local Storage Persistence**: All data cached in localStorage for offline access
+- **Local Storage Persistence**: All data cached in localStorage for offline access using TanStack Query Persist Client
 - **Network Mode**: `offlineFirst` strategy allows app to work without internet connection
 - **Automatic Sync**: Mutations queued when offline and automatically synced when connection restored
-- **Smart Caching**: 24-hour cache duration (gcTime) with 5-minute stale time
+- **Smart Caching**: 24-hour cache duration (gcTime) with 5-minute stale time for all queries
 - **Mutation Defaults**: Pre-configured mutation functions for all CRUD operations to enable resumable offline mutations
-- **Network Status Indicator**: Visual feedback for offline status and pending sync operations
-- **Query Persistence**: TanStack Query Persist Client persists all query results to localStorage
+- **Network Status Indicator**: Three distinct visual states (offline, syncing, synced) with test IDs for QA automation
+  - Shows queued mutation count while offline
+  - Displays sync progress when reconnecting
+  - Shows success message after sync completes
+- **SSR-Safe Implementation**: All browser APIs (window, navigator, localStorage) properly guarded for SSR/test compatibility
+- **Persister Strategy**: useMemo-based persister initialization ensures proper hydration in SSR contexts
+- **Mutation Tracking**: Tracks both paused (offline) and pending (syncing) mutations for accurate UI feedback
 
 ## Development Tools
 - **Replit Integration**: Vite plugins for Replit development environment
