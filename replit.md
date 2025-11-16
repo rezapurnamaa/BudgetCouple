@@ -68,6 +68,15 @@ Preferred communication style: Simple, everyday language.
 ## Data Visualization
 - **Recharts**: React charting library for spending analytics and budget visualization
 
+## Offline-First Architecture (November 2025)
+- **Local Storage Persistence**: All data cached in localStorage for offline access
+- **Network Mode**: `offlineFirst` strategy allows app to work without internet connection
+- **Automatic Sync**: Mutations queued when offline and automatically synced when connection restored
+- **Smart Caching**: 24-hour cache duration (gcTime) with 5-minute stale time
+- **Mutation Defaults**: Pre-configured mutation functions for all CRUD operations to enable resumable offline mutations
+- **Network Status Indicator**: Visual feedback for offline status and pending sync operations
+- **Query Persistence**: TanStack Query Persist Client persists all query results to localStorage
+
 ## Development Tools
 - **Replit Integration**: Vite plugins for Replit development environment
 - **PostCSS**: CSS processing with Tailwind CSS and Autoprefixer
@@ -83,6 +92,21 @@ Preferred communication style: Simple, everyday language.
 - **class-variance-authority**: Component variant management
 
 # Recent Changes
+
+## November 2025
+- **Offline-First Capabilities**: Implemented full offline support with local storage persistence
+  - App works without internet connection
+  - All data cached locally and synced automatically when reconnected
+  - Visual indicators for offline status and pending sync operations
+  - Mutation queue system ensures no data loss when offline
+- **Interactive Month Selection**: Added month selector on analytics page
+  - Click monthly summary dropdown to filter charts and expenses by specific month
+  - Collapsible expense list shows all transactions for selected month
+  - Charts automatically update to show selected month's data
+- **Source/Type Filtering**: Added payment source filter on history page for AMEX, DKB, PayPal, Cash, etc.
+- **Tablet Optimization**: Improved date range picker for iPad and tablets
+  - Better positioning and scrolling behavior
+  - Single calendar month display for screens < 1024px
 
 ## September 2025
 - **Bulk Expense Addition**: Created dedicated bulk-add page for adding multiple expenses at once with table interface, defaults, validation, individual saves, and retry functionality for weekly expense catch-ups

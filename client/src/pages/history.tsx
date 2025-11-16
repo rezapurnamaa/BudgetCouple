@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ import {
 } from "lucide-react";
 import DateRangePicker from "@/components/date-range-picker";
 import { format, parseISO, isValid } from "date-fns";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 function HistoryContent() {
@@ -57,6 +57,7 @@ function HistoryContent() {
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
   const itemsPerPage = 20;
 
+  const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { startDate, endDate } = useDateRange();
   const { toast } = useToast();

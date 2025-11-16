@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { createQueryClient } from "./lib/queryClient";
+import { setupMutationDefaults } from "./lib/mutation-defaults";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
@@ -11,6 +14,7 @@ import Statements from "@/pages/statements";
 import Settings from "@/pages/settings";
 import BulkAdd from "@/pages/bulk-add";
 import NotFound from "@/pages/not-found";
+import NetworkStatus from "@/components/network-status";
 
 function Router() {
   return (
@@ -28,13 +32,40 @@ function Router() {
 }
 
 function App() {
+  const [queryClient] = useState(() => {
+    const client = createQueryClient();
+    setupMutationDefaults(client);
+    return client;
+  });
+
+  const [persister] = useState(() => 
+    typeof window !== 'undefined'
+      ? createSyncStoragePersister({
+          storage: window.localStorage,
+          key: 'COUPLE_FINANCE_CACHE',
+        })
+      : undefined
+  );
+
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ 
+        persister,
+        maxAge: 1000 * 60 * 60 * 24,
+      }}
+      onSuccess={() => {
+        queryClient.resumePausedMutations().then(() => {
+          queryClient.invalidateQueries();
+        });
+      }}
+    >
       <TooltipProvider>
         <Toaster />
+        <NetworkStatus />
         <Router />
       </TooltipProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 
