@@ -91,7 +91,7 @@ export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
             <span>Budget Status</span>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
-            <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">All budgets are on track!</p>
           </div>
         </CardContent>
@@ -112,7 +112,7 @@ export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           <span>Budget Alerts</span>
         </CardTitle>
         <p className="text-sm text-muted-foreground">
@@ -126,10 +126,10 @@ export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
             <Alert 
               key={alert.category.id} 
               className={`
-                ${alert.alertType === 'danger' ? 'border-red-200 bg-red-50' : ''}
-                ${alert.alertType === 'warning' ? 'border-amber-200 bg-amber-50' : ''}
-                ${alert.alertType === 'info' ? 'border-blue-200 bg-blue-50' : ''}
-                ${onCategorySelect ? 'cursor-pointer hover:bg-opacity-80 transition-all duration-200' : ''}
+                ${alert.alertType === 'danger' ? 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950' : ''}
+                ${alert.alertType === 'warning' ? 'border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950' : ''}
+                ${alert.alertType === 'info' ? 'border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950' : ''}
+                ${onCategorySelect ? 'cursor-pointer hover:bg-opacity-80 dark:hover:bg-opacity-80 transition-all duration-200' : ''}
               `}
               onClick={() => onCategorySelect?.(alert.category)}
               data-testid={`alert-category-${alert.category.id}`}
@@ -138,8 +138,8 @@ export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
                 <div className="flex items-center space-x-2">
                   <span className="text-lg">{alert.category.emoji}</span>
                   <Icon className={`h-4 w-4 ${
-                    alert.alertType === 'danger' ? 'text-red-600' : 
-                    alert.alertType === 'warning' ? 'text-amber-600' : 'text-blue-600'
+                    alert.alertType === 'danger' ? 'text-red-600 dark:text-red-400' : 
+                    alert.alertType === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400'
                   }`} />
                 </div>
                 <div className="flex-1">
@@ -152,7 +152,7 @@ export default function BudgetAlerts({ onCategorySelect }: BudgetAlertsProps) {
                   <AlertDescription className="text-xs">
                     {alert.message}
                     {onCategorySelect && (
-                      <span className="ml-1 text-blue-600">Click to view expenses →</span>
+                      <span className="ml-1 text-blue-600 dark:text-blue-400">Click to view expenses →</span>
                     )}
                   </AlertDescription>
                 </div>
