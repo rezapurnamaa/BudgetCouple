@@ -10,6 +10,8 @@ import {
   Menu,
   X,
   PlusSquare,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,10 +22,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useLocation } from "wouter";
+import { useTheme } from "@/contexts/theme-context";
 
 export default function BottomNavigation() {
   const [location, setLocation] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // Primary navigation items (visible in bottom nav)
   const primaryItems = [
@@ -141,6 +145,21 @@ export default function BottomNavigation() {
                   </Button>
                 );
               })}
+              
+              {/* Theme Toggle */}
+              <Button
+                variant="outline"
+                className="flex items-center gap-3 h-12"
+                onClick={toggleTheme}
+                data-testid="menu-theme-toggle"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+                <span>{theme === "light" ? "Dark" : "Light"}</span>
+              </Button>
             </div>
           </SheetContent>
         </Sheet>

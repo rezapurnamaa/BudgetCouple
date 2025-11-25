@@ -1,9 +1,11 @@
-import { Home, BarChart3, Plus, List, Upload, Settings, FileText, PlusSquare } from "lucide-react";
+import { Home, BarChart3, Plus, List, Upload, Settings, FileText, PlusSquare, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useTheme } from "@/contexts/theme-context";
 
 export default function DesktopNavigation() {
   const [location, setLocation] = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const navigationItems = [
     { path: "/", icon: Home, label: "Dashboard" },
@@ -57,6 +59,21 @@ export default function DesktopNavigation() {
           <span>Quick Add</span>
         </Button>
       )}
+
+      {/* Theme Toggle */}
+      <Button
+        variant="ghost"
+        className="nav-button-desktop"
+        onClick={toggleTheme}
+        data-testid="button-toggle-theme"
+        title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+      >
+        {theme === "light" ? (
+          <Moon className="nav-icon-desktop" />
+        ) : (
+          <Sun className="nav-icon-desktop" />
+        )}
+      </Button>
     </nav>
   );
 }

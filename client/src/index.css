@@ -79,7 +79,7 @@
 
 /* Navigation Unified Styles */
 .nav-header {
-  @apply bg-white shadow-sm border-b border-border sticky top-0 z-50;
+  @apply bg-background shadow-sm border-b border-border sticky top-0 z-50 dark:bg-background;
 }
 
 .nav-container-desktop {
@@ -143,7 +143,7 @@
 }
 
 .page-title-section {
-  @apply bg-white border-b border-border;
+  @apply bg-background border-b border-border dark:bg-background;
 }
 
 .page-title-container {

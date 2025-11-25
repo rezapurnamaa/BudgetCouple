@@ -85,6 +85,11 @@ Preferred communication style: Simple, everyday language.
 # Recent Changes
 
 ## November 2025
+- **Dark Mode Support**: Full dark/light theme toggle
+  - Theme toggle button in navigation (moon/sun icon)
+  - Mobile users can toggle theme in "More Options" menu
+  - Theme preference saved to localStorage and persists across sessions
+  - All UI components properly styled for light and dark modes
 - **Category Sorting by Last Used**: Quick add expense now sorts categories by most recently used
   - Categories automatically reorder based on usage frequency
   - Reduces scrolling when adding expenses
